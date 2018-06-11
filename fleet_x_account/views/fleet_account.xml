@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
-<openerp>
-    <data>
-
+<odoo>
         <record model='ir.ui.view' id='fleet_vehicle_service_types_form'>
             <field name="name">fleet.service.type.form</field>
             <field name="model">fleet.service.type</field>
@@ -18,6 +16,4 @@
             </field>
         </record>
 
-   
-    </data>
-</openerp>
+</odoo>

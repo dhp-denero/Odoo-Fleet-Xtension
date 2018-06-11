@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<openerp>
-	<data>
+<odoo>
 
-		<!-- Issues -->
+        <!-- Issues -->
         <!-- Issue Categories -->
         
         <record id="fleet_vehicle_issue_category_tree" model="ir.ui.view">
@@ -158,16 +157,16 @@
         </record>
         <menuitem id="menu_fleet_vehicle_issue"
             action="open_fleet_vehicle_issue"
-            groups="fleet.group_fleet_user"
+            groups="fleet.fleet_group_user"
             parent="fleet.fleet_vehicles"
             sequence="15"/>
             
         <record id="fleet_vehicle_form" model="ir.ui.view">
             <field name="name">fleet.vehicle.form.inherit</field>
             <field name="model">fleet.vehicle</field>
-            <field name="inherit_id" ref="fleet.fleet_vehicle_form" />
+            <field name="inherit_id" ref="fleet.fleet_vehicle_view_form" />
             <field name="arch" type="xml">
-                <div class="oe_right oe_button_box" position="inside">
+                <div class="oe_button_box" position="inside">
                     <button name="%(open_fleet_vehicle_issue)d"
                         context="{'search_default_vehicle_id': [active_id],'default_vehicle_id': active_id}"
                         type="action" class="oe_stat_button" icon="fa-bug">
@@ -177,8 +176,4 @@
 
             </field>
         </record>
-        
-
-	</data>
-</openerp>
-
+</odoo>

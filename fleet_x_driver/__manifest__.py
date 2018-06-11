@@ -2,7 +2,7 @@
 {
     'name': "Fleet Xtension - Driver",
     'summary': "Driver addon for Fleet management Xtension",
-    'author': "Salton Massally<smassally@idtlabd.sl>",
+    'author': "Salton Massally<smassally@idtlabd.sl>, DeneroTeam <dhaval@deneroteam.com>",
     'website': "hhtp://idtlabs.sl",
     'category': 'Managing vehicles and drivers',
     'version': '0.1',

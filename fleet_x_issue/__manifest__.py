@@ -3,7 +3,7 @@
     'name': "Fleet Xtenson Issue Mgmt",
 
     'summary': "Issue Management for Fleet",
-    'author': "Salton Massally <smassally@idtlabs.sl>",
+    'author': "Salton Massally <smassally@idtlabs.sl>, DeneroTeam <dhaval@deneroteam.com>",
     'website': "http://idtlabs.sl",
     'category': 'Managing vehicles and contracts',
     'version': '0.1',

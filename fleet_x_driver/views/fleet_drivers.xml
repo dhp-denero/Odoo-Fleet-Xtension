@@ -1,46 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<openerp>
-	<data>
+<odoo>
 
-		<menuitem name="Drivers" parent="fleet.menu_root" id="fleet_drivers" sequence="2" groups="fleet.group_fleet_manager"/>
-		
-		
-		<record id="driver_vehicle_assign_form" model="ir.ui.view">
-			<field name="name">fleet.assign.form</field>
-			<field name="model">fleet.driver.assignment</field>
-			<field name="arch" type="xml">
-				<form string="Assign Vehicle">
-					<sheet>
-					<group>
-						<group>
-							<field name="driver_id"/>
-							<field name="vehicle_id"/>
-							<field name="type" required="1"/>
-						</group>
-						<group>
-							<label for="date_start" string="Duration"/>
-                        		<div>
-	                                <group col="3">
-	                                    <field name="date_start" nolabel="1" class="oe_inline"/><label string="-" class="oe_inline"/>
-	                                    <field name="date_end" nolabel="1" class="oe_inline"/>
-	                                </group>
-	                            </div>
-	                            
-	                            <label for="odometer_start" string="Distance"/>
-                        		<div>
-	                                <group col="3">
-	                                    <field name="odometer_start" nolabel="1" class="oe_inline"/><label string="-" class="oe_inline"/>
-	                                    <field name="odometer_end" nolabel="1" class="oe_inline"/>
-	                                </group>
-	                            </div>
-						</group>
-						</group>
-					</sheet>
-				</form>
-			</field>
-		</record>
-		
-		<record id="driver_vehicle_assign_tree" model="ir.ui.view">
+        <menuitem name="Drivers" parent="fleet.menu_root" id="fleet_drivers" sequence="2" groups="fleet.fleet_group_manager"/>
+
+        <record id="driver_vehicle_assign_form" model="ir.ui.view">
+            <field name="name">fleet.assign.form</field>
+            <field name="model">fleet.driver.assignment</field>
+            <field name="arch" type="xml">
+                <form string="Assign Vehicle">
+                    <sheet>
+                    <group>
+                        <group>
+                            <field name="driver_id"/>
+                            <field name="vehicle_id"/>
+                            <field name="type" required="1"/>
+                        </group>
+                        <group>
+                            <label for="date_start" string="Duration"/>
+                                <div>
+                                    <group col="3">
+                                        <field name="date_start" nolabel="1" class="oe_inline"/><label string="-" class="oe_inline"/>
+                                        <field name="date_end" nolabel="1" class="oe_inline"/>
+                                    </group>
+                                </div>
+                                
+                                <label for="odometer_start" string="Distance"/>
+                                <div>
+                                    <group col="3">
+                                        <field name="odometer_start" nolabel="1" class="oe_inline"/><label string="-" class="oe_inline"/>
+                                        <field name="odometer_end" nolabel="1" class="oe_inline"/>
+                                    </group>
+                                </div>
+                        </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="driver_vehicle_assign_tree" model="ir.ui.view">
             <field name="name">fleet.assign.tree</field>
             <field name="model">fleet.driver.assignment</field>
             <field eval="8" name="priority"/>
@@ -71,59 +69,59 @@
              </field>
         </record>
 
-		<record id="act_drv_vehicle_assign" model="ir.actions.act_window">
-			<field name="name">Driver-Vehicle Assignment</field>
-			<field name="type">ir.actions.act_window</field>
-			<field name="res_model">fleet.driver.assignment</field>
-			<field name="view_type">form</field>
-			<field name="view_mode">tree,form</field>
-		</record>	
-		
-	
-				
-		<!-- Driver -->
+        <record id="act_drv_vehicle_assign" model="ir.actions.act_window">
+            <field name="name">Driver-Vehicle Assignment</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">fleet.driver.assignment</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>   
+        
+    
+                
+        <!-- Driver -->
         <record id="view_driver_tree" model="ir.ui.view">
             <field name="name">fleet.driver.tree</field>
             <field name="model">fleet.driver</field>
             <field eval="8" name="priority"/>
             <field name="arch" type="xml">
-                <tree string="Drivers" colors="red:state == 'licence_exp';blue:state == 'draft';black:state in ('assigned', 'unassigned');gray:state in('terminated')">
+                <tree string="Drivers" >
                     <field name="display_name"/>
                      <field name="identification_no"/>
-                    <field name="phone"/>                   
+                    <field name="phone"/>
                     <field name="vehicle_id"/>
                     <field name="location_id"/>
                      <field name="state"/>
                 </tree>
             </field>
         </record>
-	
+    
 
         <record id="view_driver_form" model="ir.ui.view">
             <field name="name">fleet.driver.form</field>
             <field name="model">fleet.driver</field>
             <field eval="1" name="priority"/>
-	<field name="sequence" eval="0"/>
+            <field name="sequence" eval="0"/>
             <field name="arch" type="xml">
                 <form string="Drivers">
                 <header>
-						<button 
-							name="action_confirm" states="draft" type="object" class="oe_highlight"
-							string="Confirm" groups="fleet.group_fleet_manager" />
-							
-						<button 
-							name="action_unassign" states="assigned" type="object"
-							string="Unassign" groups="fleet.group_fleet_manager" />
+                        <button 
+                            name="action_confirm" states="draft" type="object" class="oe_highlight"
+                            string="Confirm" groups="fleet.fleet_group_manager" />
+                            
+                        <button 
+                            name="action_unassign" states="assigned" type="object"
+                            string="Unassign" groups="fleet.fleet_group_manager" />
 
-						<button name="action_terminate" type="object"  states="assigned,unassigned,license_exp,draft"
-							string="Terminate" groups="fleet.group_fleet_manager" />
-							
-						<button 
-							name="action_reactivate" states="terminated" type="object"
-							string="Reactivate" groups="fleet.group_fleet_manager" />
+                        <button name="action_terminate" type="object"  states="assigned,unassigned,license_exp,draft"
+                            string="Terminate" groups="fleet.fleet_group_manager" />
+                            
+                        <button 
+                            name="action_reactivate" states="terminated" type="object"
+                            string="Reactivate" groups="fleet.fleet_group_manager" />
 
-						<field name="state" widget="statusbar" />
-					</header>
+                        <field name="state" widget="statusbar" />
+                    </header>
                 <sheet>
                     <field name="image" widget='image' class="oe_left oe_avatar" options='{"preview_image": "image_medium", "size": [90, 90]}'/>
                     <div class="oe_title oe_left">
@@ -141,8 +139,8 @@
                         <field name="category_id" widget="many2many_tags" placeholder="Tags..."/>
                     </div>
                     <div class="oe_right oe_button_box" name="buttons"> 
-                    	<button name="%(act_drv_vehicle_assign)d"
-                    			context="{'search_default_driver_id': [active_id],'default_driver_id': active_id}"
+                        <button name="%(act_drv_vehicle_assign)d"
+                                context="{'search_default_driver_id': [active_id],'default_driver_id': active_id}"
                                 type="action"
                                 class="oe_stat_button"
                                 icon="fa-tasks"
@@ -150,7 +148,7 @@
                                 <field name="previous_assignment_count" widget="statinfo" string="Assignments"/>
                             </button>
                           <button name="%(fleet_x_issue.open_fleet_vehicle_issue)d"
-                    			context="{'search_default_driver_id': [active_id],'default_driver_id': active_id}"
+                                context="{'search_default_driver_id': [active_id],'default_driver_id': active_id}"
                                 type="action"
                                 class="oe_stat_button"
                                 icon="fa-bug"
@@ -158,14 +156,14 @@
                                  <field name="issue_count" widget="statinfo" string="Issues"/>
                            </button>
                          <button name="action_get_attachment_tree_view" class="oe_stat_button attachment_2"
-							icon="fa-book" type="object">
-							<field name="attachment_count" widget="statinfo" string="Documents" />
-						</button>
+                            icon="fa-book" type="object">
+                            <field name="attachment_count" widget="statinfo" string="Documents" />
+                        </button>
                     </div>
 
                     <group>
                         <group>
-                        	<field name="license_no"/>
+                            <field name="license_no"/>
                             <label for="street" string="Address"/>
                             <div>
                                 <field name="street" placeholder="Street..."/>
@@ -176,9 +174,9 @@
                             <field name="dob"/>
                         </group>
                         <group>
-                        	<field name="date_hired" />
-							<field name="date_license_exp"/>
-							<field name="location_id" readonly="1"/>
+                            <field name="date_hired" />
+                            <field name="date_license_exp"/>
+                            <field name="location_id" readonly="1"/>
                             <field name="function" placeholder="e.g. Truck Driver"/>
                             <field name="phone" placeholder="e.g. +32.81.81.37.00"/>                            
                             <field name="user_ids" invisible="1"/>
@@ -226,7 +224,7 @@
         <record model="ir.ui.view" id="res_driver_kanban_view">
             <field name="name">fleet.driver.kanban</field>
             <field name="model">fleet.driver</field>
-	<field name="sequence" eval="2"/>
+    <field name="sequence" eval="2"/>
             <field name="arch" type="xml">
                 <kanban>
                     <field name="color"/>
@@ -243,14 +241,13 @@
                     <field name="mobile"/>
                     <field name="state_id"/>
                     <field name="category_id"/>
-                    <field name="has_image"/>
                     <templates>
                         <t t-name="kanban-box">
                             <div class="oe_kanban_vignette oe_semantic_html_override">
                                 <a type="open">
-                                    <t t-if="record.has_image.raw_value === true">
-                                        <img t-att-src="kanban_image('fleet.driver', 'image_small', record.id.value)" class="oe_kanban_image"/>
-                                    </t>
+                                    <div class="o_kanban_image">
+                                        <img t-att-src="kanban_image('fleet.driver', 'image_small', record.id.value)"/>
+                                    </div>
                                     <t t-if="record.has_image.raw_value === false">
                                         <img t-att-src='_s + "/base/static/src/img/avatar.png"' class="oe_kanban_image"/>
                                     </t>
@@ -260,7 +257,7 @@
                                     <div class="oe_kanban_driver_categories"/>
                                     <div class="oe_kanban_driver_links"/>
                                     <ul>
-                                    	<li t-if="record.vehicle_id.raw_value"><field name="vehicle_id"/></li>
+                                        <li t-if="record.vehicle_id.raw_value"><field name="vehicle_id"/></li>
                                         <li t-if="record.phone.raw_value"><field name="phone"/></li>
                                         <li t-if="record.function.raw_value"><field name="function"/></li>                                        
                                         <li t-if="record.email.raw_value"><a t-attf-href="mailto:#{record.email.raw_value}"><field name="email"/></a></li>
@@ -279,11 +276,9 @@
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">fleet.driver</field>
             <field name="view_type">form</field>
-          <!--  <field name="view_mode">kanban,tree,form</field>  -->
             <field name="view_id" ref="view_driver_tree"/>
-    
-	<field name="search_view_id" ref="view_res_driver_filter"/>
-	<field name="view_mode">kanban,tree,form</field>
+            <field name="search_view_id" ref="view_res_driver_filter"/>
+            <field name="view_mode">kanban,tree,form</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
                 Click to add a driver to the system.
@@ -304,92 +299,91 @@
         </record>
        
 
-		<menuitem action="action_driver" parent="fleet_drivers"
-			id="fleet_drivers_menu" groups="fleet.group_fleet_user"  sequence="1"/>
-			
-		<menuitem action="action_driver_exp" parent="fleet_drivers"
-			id="fleet_drivers_menu_exp" groups="fleet.group_fleet_user"  sequence="2"/>
-			
-			
-		<record id="fleet_x_service_vehicle_form" model="ir.ui.view">
-			<field name="name">fleet.vehicle.form.inherit</field>
-			<field name="model">fleet.vehicle</field>
-			<field name="inherit_id" ref="fleet_x.fleet_vehicle_form" />
-			<field name="arch" type="xml">
-			
-			<field name="driver_id" position="replace">
-				<field name="driver_id" invisible="1"/>
-				<field name="vehicle_driver_id" />
-				<field name="alt_vehicle_driver_id" />
-			</field>
-			
-			
-               	
-               	<button name="action_get_attachment_tree_view" position="before">
+        <menuitem action="action_driver" parent="fleet_drivers"
+            id="fleet_drivers_menu" groups="fleet.fleet_group_user"  sequence="1"/>
+            
+        <menuitem action="action_driver_exp" parent="fleet_drivers"
+            id="fleet_drivers_menu_exp" groups="fleet.fleet_group_user"  sequence="2"/>
+            
+            
+        <record id="fleet_x_service_vehicle_form" model="ir.ui.view">
+            <field name="name">fleet.vehicle.form.inherit</field>
+            <field name="model">fleet.vehicle</field>
+            <field name="inherit_id" ref="fleet_x.fleet_vehicle_form" />
+            <field name="arch" type="xml">
+            
+            <field name="driver_id" position="replace">
+                <field name="driver_id" invisible="1"/>
+                <field name="vehicle_driver_id" />
+                <field name="alt_vehicle_driver_id" />
+            </field>
+            
+            
+                
+                <button name="action_get_attachment_tree_view" position="before">
                             
-               		<button name="%(act_drv_vehicle_assign)d"
-                    			context="{'search_default_vehicle_id': [active_id],'default_vehicle_id': active_id}"
+                    <button name="%(act_drv_vehicle_assign)d"
+                                context="{'search_default_vehicle_id': [active_id],'default_vehicle_id': active_id}"
                                 type="action"
                                 class="oe_stat_button"
                                 icon="fa-tasks"
                                 >
                                 <field name="previous_assignment_count" widget="statinfo" string="Assignments"/>
                             </button>
-               	</button>
-			</field>
-		</record>
+                </button>
+            </field>
+        </record>
 
-	<record id="fleet_x_vehicle_search" model="ir.ui.view">
-		<field name="name">fleet.vehicle.search.inherit</field>
-		<field name="model">fleet.vehicle</field>
-		<field name="inherit_id" ref="fleet.fleet_vehicle_search" />
-		<field name="arch" type="xml">
-			<field name="driver_id" position="after">
-				<field name="type_id"/>
-			</field>
-			<filter name="groupby_status" position="before">
-				<filter name="groupby_type" context="{'group_by' : 'type_id'}" string="Type"/>
-			</filter>
-		</field>
-	</record>
-	
- 	<record id="fleet_vehicle_issue_form" model="ir.ui.view">
-		<field name="name">fleet.vehicle.issue.form.inherit</field>
-		<field name="model">fleet.vehicle.issue</field>
-		<field name="inherit_id" ref="fleet_x_issue.fleet_vehicle_issue_form" />
-		<field name="arch" type="xml">
-			<field name="vehicle_id" position="after">
-				<field name="driver_id"/>
-			</field>
-		</field>
-	</record>
-	
-	<record id="fleet_vehicle_issue_tree" model="ir.ui.view">
-		<field name="name">fleet.vehicle.issue.tree.inherit</field>
-		<field name="model">fleet.vehicle.issue</field>
-		<field name="inherit_id" ref="fleet_x_issue.fleet_vehicle_issue_tree" />
-		<field name="arch" type="xml">
-			<field name="vehicle_id" position="after">
-				<field name="driver_id"/>
-			</field>
-		</field>
-	</record>
-	 
- 	<record id="fleet_vehicle_issue_search" model="ir.ui.view">
-		<field name="name">fleet.vehicle.issue.search.inherit</field>
-		<field name="model">fleet.vehicle.issue</field>
-		<field name="inherit_id" ref="fleet_x_issue.view_fleet_vehicle_issue_filter" />
-		<field name="arch" type="xml">
-			<field name="vehicle_id" position="after">
-				<field name="driver_id"/>
-			</field>
-			<filter name="group_vehicle" position="after">
-				<filter name="group_driver" string="Diver" icon="terp-personal" domain="[]" context="{'group_by':'driver_id'}"/>
-			</filter>
+    <record id="fleet_x_vehicle_search" model="ir.ui.view">
+        <field name="name">fleet.vehicle.search.inherit</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_search" />
+        <field name="arch" type="xml">
+            <field name="driver_id" position="after">
+                <field name="type_id"/>
+            </field>
+            <filter name="groupby_status" position="before">
+                <filter name="groupby_type" context="{'group_by' : 'type_id'}" string="Type"/>
+            </filter>
+        </field>
+    </record>
+    
+    <record id="fleet_vehicle_issue_form" model="ir.ui.view">
+        <field name="name">fleet.vehicle.issue.form.inherit</field>
+        <field name="model">fleet.vehicle.issue</field>
+        <field name="inherit_id" ref="fleet_x_issue.fleet_vehicle_issue_form" />
+        <field name="arch" type="xml">
+            <field name="vehicle_id" position="after">
+                <field name="driver_id"/>
+            </field>
+        </field>
+    </record>
+    
+    <record id="fleet_vehicle_issue_tree" model="ir.ui.view">
+        <field name="name">fleet.vehicle.issue.tree.inherit</field>
+        <field name="model">fleet.vehicle.issue</field>
+        <field name="inherit_id" ref="fleet_x_issue.fleet_vehicle_issue_tree" />
+        <field name="arch" type="xml">
+            <field name="vehicle_id" position="after">
+                <field name="driver_id"/>
+            </field>
+        </field>
+    </record>
+     
+    <record id="fleet_vehicle_issue_search" model="ir.ui.view">
+        <field name="name">fleet.vehicle.issue.search.inherit</field>
+        <field name="model">fleet.vehicle.issue</field>
+        <field name="inherit_id" ref="fleet_x_issue.view_fleet_vehicle_issue_filter" />
+        <field name="arch" type="xml">
+            <field name="vehicle_id" position="after">
+                <field name="driver_id"/>
+            </field>
+            <filter name="group_vehicle" position="after">
+                <filter name="group_driver" string="Diver" icon="terp-personal" domain="[]" context="{'group_by':'driver_id'}"/>
+            </filter>
 
-		</field>
-	</record>
-	
+        </field>
+    </record>
 
-	</data>
-</openerp>
+
+</odoo>

@@ -1,65 +1,62 @@
 # -*- coding: utf-8 -*-
-from openerp import models, fields, api
-from openerp.exceptions import except_orm, Warning, RedirectWarning, ValidationError
-import warnings
-from  datetime import datetime
-from openerp.tools import DEFAULT_SERVER_DATE_FORMAT as DATE_FORMAT
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as DATETIME_FORMAT
-from openerp import SUPERUSER_ID
+from odoo import models, fields, api
+from odoo.exceptions import UserError
 
+from datetime import datetime
 
 # --------------
 #  Vehicle Drivers
 # --------------
 
+
 class fleet_driver(models.Model):
 
     _name = 'fleet.driver'
-    _inherits = {'res.partner':'partner_id'}
+    _inherits = {'res.partner': 'partner_id'}
     _inherit = ['ir.needaction_mixin', 'mail.thread']
-   
-    partner_id = fields.Many2one('res.partner' , required=True, ondelete="cascade")
+
+    partner_id = fields.Many2one('res.partner', required=True, ondelete="cascade")
     identification_no = fields.Char('Identification #')
-    date_hired = fields.Date('Hire Date', help='Date when the driver is hired', 
+    date_hired = fields.Date('Hire Date', help='Date when the driver is hired',
                              required=True, track_visibility='onchange')
-    date_terminated = fields.Date('Terminated Date', 
-                                  help='Date when the driver is terminated from job', 
+    date_terminated = fields.Date('Terminated Date',
+                                  help='Date when the driver is terminated from job',
                                   track_visibility='onchange', readonly=True)
-    date_license_exp = fields.Date('License exp. Date', help='Date when license expires', 
-                                   required=False, track_visibility='onchange', 
+    date_license_exp = fields.Date('License exp. Date', help='Date when license expires',
+                                   required=False, track_visibility='onchange',
                                    inverse="_set_date_license_exp")
     dob = fields.Date('Date of Birth')
     gender = fields.Selection([('male', 'Male'), ('female', 'Female')], 'Gender')
-    vehicle_id = fields.Many2one('fleet.vehicle', string="Vehicle", index=1, 
-                                 track_visibility='onchange', readonly=True, 
+    vehicle_id = fields.Many2one('fleet.vehicle', string="Vehicle", index=1,
+                                 track_visibility='onchange', readonly=True,
                                  compute="_compute_vehicle", store=True)
     state = fields.Selection([('draft', 'Draft'),
                               ('unassigned', 'Unassigned'),
                               ('assigned', 'Assigned'),
                               ('license_exp', 'License Expired'),
-                              ('terminated', 'Terminated')], 'State', 
-                             default='draft', track_visibility='onchange')
-    previous_assignment_ids = fields.One2many('fleet.driver.assignment', 'driver_id' , 
+                              ('terminated', 'Terminated')], 'State',
+                             default='draft')
+    previous_assignment_ids = fields.One2many('fleet.driver.assignment', 'driver_id',
                                               "Previous Vehicles", readonly=True)
-    previous_assignment_count = fields.Integer('Assignment Count', 
-                                               compute='_get_assignment_count', 
+    previous_assignment_count = fields.Integer('Assignment Count',
+                                               compute='_get_assignment_count',
                                                readonly=True)
-    attachment_count = fields.Integer(string='Number of Attachments', 
+    attachment_count = fields.Integer(string='Number of Attachments',
                                       compute='_get_attachment_number')
     license_no = fields.Char('License Number', required=True)
-    issue_ids = fields.One2many('fleet.vehicle.issue', 'driver_id', 'Issues', 
+    issue_ids = fields.One2many('fleet.vehicle.issue', 'driver_id', 'Issues',
                                 readonly=True)
-    issue_count = fields.Integer('Issue Count', compute='_get_issue_count', 
+    issue_count = fields.Integer('Issue Count', compute='_get_issue_count',
                                  readonly=True)
-    location_id = fields.Many2one('fleet.vehicle.location', 'Operational Location', 
+    location_id = fields.Many2one('fleet.vehicle.location', 'Operational Location',
                                   related="vehicle_id.location_id", store=True)
-    
+
     @api.one
     @api.depends('previous_assignment_ids')
     def _get_assignment_count(self):
         self.previous_assignment_count = len(self.previous_assignment_ids)
 
-    @api.one 
+    @api.one
     def _get_attachment_number(self):
         '''
         returns the number of attachments attached to a record
@@ -67,20 +64,22 @@ class fleet_driver(models.Model):
         '''
         self.attachment_count = self.env['ir.attachment'].search_count([('res_model', '=', self._name),
                                                                        ('res_id', '=', self.id)])
+
     @api.one
     @api.depends('issue_ids')
     def _get_issue_count(self):
         self.issue_count = len(self.issue_ids)
-        
+
     @api.one
     @api.depends('previous_assignment_ids')
     def _compute_vehicle(self):
         self.vehicle_id = None
-        if not len(self.previous_assignment_ids) or self.previous_assignment_ids[0].date_end \
-        or self.state == 'unassigned':
+        if not len(self.previous_assignment_ids) or \
+                self.previous_assignment_ids[0].date_end \
+                or self.state == 'unassigned':
             return
         self.vehicle_id = self.previous_assignment_ids[0].vehicle_id
-    
+
     @api.one
     def _set_date_license_exp(self):
         if self.state == 'license_exp' and fields.Date.from_string(self.date_license_exp) > datetime.now().date():
@@ -88,7 +87,7 @@ class fleet_driver(models.Model):
                 self.state = 'assigned'
             else:
                 self.state = 'unassigned'
-    
+
     @api.model
     def _needaction_domain_get(self):
         """
@@ -109,21 +108,20 @@ class fleet_driver(models.Model):
         # usage of self not working here. api.multi required?
         driver_obj = self.env['fleet.driver']
         recs = driver_obj.search([('date_license_exp', '<=', fields.Date.today())])
-        recs.write({'state' : 'license_exp'})
+        recs.write({'state': 'license_exp'})
         return True
 
-   
     @api.multi
     def action_unassign(self):
         for driver in self:
-            vehicle = driver.vehicle_id.id         
+            vehicle = driver.vehicle_id.id
             if vehicle.vehicle_driver_id.id == driver.id:
-                vehicle.write({'vehicle_driver_id' : None})
+                vehicle.write({'vehicle_driver_id': None})
             elif vehicle.alt_vehicle_driver_id.id == driver.id:
-                vehicle.write({'alt_vehicle_driver_id' : None, })
-            driver.write({'state': 'unassigned', 'vehicle_id' : None})
+                vehicle.write({'alt_vehicle_driver_id': None, })
+            driver.write({'state': 'unassigned', 'vehicle_id': None})
         return True
-    
+
     @api.multi
     def action_confirm(self):
         for driver in self:
@@ -131,7 +129,7 @@ class fleet_driver(models.Model):
                 driver.state = 'assigned'
             else:
                 driver.state = 'unassigned'
-    
+
     @api.multi
     def action_assign(self):
         return self.write({'state': 'assigned'})
@@ -143,36 +141,37 @@ class fleet_driver(models.Model):
     @api.multi
     def action_terminate(self):
         self.action_unassign()
-        return self.write({'state': 'terminated', 'date_terminated' : fields.Date.today(), 'active' : False})
-    
+        return self.write({'state': 'terminated', 'date_terminated': fields.Date.today(), 'active': False})
+
     @api.multi
     def action_reactivate(self):
         self.action_confirm()
-        return self.write({'date_terminated' : None, 'active' : True})
-    
-    def fields_get(self, cr, uid, fields=None, context=None, write_access=True):
-        fields_to_hide = [] # let's hide res parter field that we do not want
-        res = super(fleet_driver, self).fields_get(cr, uid, fields, context)
-        for field in fields_to_hide:
-            res[field]['selectable'] = False
-        return res
+        return self.write({'date_terminated': None, 'active': True})
+
+    # def fields_get(self, cr, uid, fields=None, context=None, write_access=True):
+    #     fields_to_hide = []  # let's hide res parter field that we do not want
+    #     res = super(fleet_driver, self).fields_get(cr, uid, fields, context)
+    #     for field in fields_to_hide:
+    #         res[field]['selectable'] = False
+    #     return res
+
 
 # --------------
 # Fleet Vehicle
 # --------------
 class fleet_vehicle(models.Model):
     _inherit = "fleet.vehicle"
-    
+
     @api.one
     @api.depends('previous_assignment_ids')
     def _get_assignment_count(self):
         self.previous_assignment_count = len(self.previous_assignment_ids)
-    
+
     @api.one
     @api.constrains('vehicle_driver_id', 'alt_vehicle_driver_id')
     def _check_drivers(self):
         if self.vehicle_driver_id and self.alt_vehicle_driver_id and self.vehicle_driver_id.id == self.alt_vehicle_driver_id.id:
-            raise Warning('Primary and Alternate drivers can not be the same')
+            raise UserError('Primary and Alternate drivers can not be the same')
 
     @api.one
     def _set_driver(self):
@@ -183,21 +182,21 @@ class fleet_vehicle(models.Model):
             if len(drivers) == 0:
                 return
             else:
-                drivers[0].date_end = fields.Date.today()  
-                drivers[0].odometer_end = self.odometer  
+                drivers[0].date_end = fields.Date.today()
+                drivers[0].odometer_end = self.odometer
                 drivers[0].driver_id.state = 'unassigned'
-            return 
+            return
         if len(drivers):
-            drivers[0].date_end = fields.Date.today()  
-            drivers[0].odometer_end = self.odometer 
+            drivers[0].date_end = fields.Date.today()
+            drivers[0].odometer_end = self.odometer
         self.env['fleet.driver.assignment'].create({
-                                                    'vehicle_id' : self.id,
-                                                    'driver_id' : self.vehicle_driver_id.id,
-                                                    'date_start' : fields.Date.today(),
-                                                    'type' : 'primary'
-                                                    })
+            'vehicle_id': self.id,
+            'driver_id': self.vehicle_driver_id.id,
+            'date_start': fields.Date.today(),
+            'type': 'primary'
+        })
         self.vehicle_driver_id.state = 'assigned'
-        
+
     @api.one
     def _set_alt_driver(self):
         assignment_obj = self.env['fleet.driver.assignment']
@@ -207,41 +206,42 @@ class fleet_vehicle(models.Model):
             if len(drivers) == 0:
                 return
             else:
-                drivers[0].date_end = fields.Date.today()  
+                drivers[0].date_end = fields.Date.today()
                 drivers[0].odometer_end = self.odometer
                 drivers[0].driver_id.state = 'unassigned'
             return
-        
+
         if len(drivers):
-            drivers[0].date_end = fields.Date.today()  
-            drivers[0].odometer_end = self.odometer 
+            drivers[0].date_end = fields.Date.today()
+            drivers[0].odometer_end = self.odometer
         self.env['fleet.driver.assignment'].create({
-                                                    'vehicle_id' : self.id,
-                                                    'driver_id' : self.alt_vehicle_driver_id.id,
-                                                    'date_start' : fields.Date.today(),
-                                                    'type' : 'secondary'
-                                                    })
-        self.alt_vehicle_driver_id.state = 'assigned'   
- 
-    vehicle_driver_id = fields.Many2one('fleet.driver', 'Assigned Driver (Primary)', 
-                                        help='Primary driver of the vehicle', 
-                                        track_visibility='onchange', 
-                                        inverse="_set_driver", 
+            'vehicle_id': self.id,
+            'driver_id': self.alt_vehicle_driver_id.id,
+            'date_start': fields.Date.today(),
+            'type': 'secondary'
+        })
+        self.alt_vehicle_driver_id.state = 'assigned'
+
+    vehicle_driver_id = fields.Many2one('fleet.driver', 'Assigned Driver (Primary)',
+                                        help='Primary driver of the vehicle',
+                                        track_visibility='onchange',
+                                        inverse="_set_driver",
                                         domain=[('state', '=', 'unassigned')])
-    alt_vehicle_driver_id = fields.Many2one('fleet.driver', 'Assigned Driver (Secondary)', 
-                                            help='Secondary driver of the vehicle', 
+    alt_vehicle_driver_id = fields.Many2one('fleet.driver', 'Assigned Driver (Secondary)',
+                                            help='Secondary driver of the vehicle',
                                             track_visibility='onchange',
-                                            inverse="_set_alt_driver", 
+                                            inverse="_set_alt_driver",
                                             domain=[('state', '=', 'unassigned')])
-    driver_id = fields.Many2one('res.partner', 'Driver', help='Driver of the vehicle', 
-                                related='vehicle_driver_id.partner_id', 
+    driver_id = fields.Many2one('res.partner', 'Driver', help='Driver of the vehicle',
+                                related='vehicle_driver_id.partner_id',
                                 readonly=True, required=False, store=True)
-    previous_assignment_ids = fields.One2many('fleet.driver.assignment', 'vehicle_id' , 
-                                              "Previous Drivers", readonly=True)
-    previous_assignment_count = fields.Integer(string='Assignment History', 
-                                               compute='_get_assignment_count', 
+    previous_assignment_ids = fields.One2many(
+        'fleet.driver.assignment', 'vehicle_id',
+        "Previous Drivers", readonly=True)
+    previous_assignment_count = fields.Integer(string='Assignment History',
+                                               compute='_get_assignment_count',
                                                readonly=True)
-    
+
     @api.multi
     def write(self, vals):
         """
@@ -268,20 +268,21 @@ class fleet_vehicle(models.Model):
 
             if len(changes) > 0:
                 vehicle.message_post(body=", ".join(changes))
-        
+
         # @todi what is the purpose here
         vehicle_id = super(fleet_vehicle, self).write(vals)
         if 'vehicle_driver_id' in vals and vehicle.vehicle_driver_id.id != vals['vehicle_driver_id']:
             vehicle.vehicle_driver_id.action_assign()
         return vehicle_id
-    
+
+
 class fleet_driver_assignment(models.Model):
     _name = 'fleet.driver.assignment'
     _order = 'date_start DESC, id DESC'
 
     vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', requried=True)
     driver_id = fields.Many2one('fleet.driver', 'Driver', required=True)
-    date_start = fields.Date('Start Date', required=True, help='Vehicle assignment start-date') 
+    date_start = fields.Date('Start Date', required=True, help='Vehicle assignment start-date')
     date_end = fields.Date('End Date', help='Vehicle assignment end-date', default=False)
     notes = fields.Text('Notes')
     odometer_start = fields.Float('Odometer at Start', readonly=True)
@@ -291,7 +292,7 @@ class fleet_driver_assignment(models.Model):
     @api.model
     @api.returns('fleet.driver.assignment')
     def create(self, data):
-        res = super(fleet_x_driver_assign, self).create(data)
+        res = super(fleet_driver_assignment, self).create(data)
         res.odometer_start = res.vehicle_id.odometer
         return res
 
@@ -299,31 +300,34 @@ class fleet_driver_assignment(models.Model):
     @api.constrains('driver_id', 'vehicle_id')
     def _check_driver_assign(self):
         domain = [
-                  ('driver_id', '=', self.driver_id.id),
-                  ('id', '!=', self.id),
-                  ('vehicle_id', '!=', self.vehicle_id.id),
-                  '|',
-                  ('date_end', 'in', (False, None)),
-                  ('date_end', '>', self.date_start),
-                  ]
+            ('driver_id', '=', self.driver_id.id),
+            ('id', '!=', self.id),
+            ('vehicle_id', '!=', self.vehicle_id.id),
+            '|',
+            ('date_end', 'in', (False, None)),
+            ('date_end', '>', self.date_start),
+        ]
         if self.search_count(domain):
-            raise Warning('Driver is already assigned to another vehicle')
-        
-        domain = [
-                  ('vehicle_id', '=', self.vehicle_id.id),
-                  ('id', '!=', self.id),
-                  ('driver_id', '!=', self.driver_id.id),
-                  ('type', '=', self.type),
-                  '|',
-                  ('date_end', 'in', (False, None)),
-                  ('date_end', '>', self.date_start),
-                  
-                  ]
-        if self.search_count(domain):
-            raise Warning('Vehicle is already assigned to another driver of this same type')
+            raise UserError('Driver is already assigned to another vehicle')
 
-class fleet_vehicle_issue(models.Model):    
+        domain = [
+
+            ('vehicle_id', '=', self.vehicle_id.id),
+            ('id', '!=', self.id),
+            ('driver_id', '!=', self.driver_id.id),
+            ('type', '=', self.type),
+            '|',
+            ('date_end', 'in', (False, None)),
+            ('date_end', '>', self.date_start),
+        ]
+        if self.search_count(domain):
+            raise UserError('Vehicle is already assigned to another driver of this same type')
+
+
+class fleet_vehicle_issue(models.Model):
     _inherit = 'fleet.vehicle.issue'
-    
-    driver_id = fields.Many2one('fleet.driver', 'Responsible', required=True, readonly=True, domain=[('state', 'not in', ('draft', 'terminated'))],
-                                   states={'draft': [('readonly', False)]})
+
+    driver_id = fields.Many2one('fleet.driver', 'Responsible',
+                                required=True, readonly=True,
+                                domain=[('state', 'not in', ('draft', 'terminated'))],
+                                states={'draft': [('readonly', False)]})
