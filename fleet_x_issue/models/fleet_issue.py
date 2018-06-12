@@ -98,18 +98,18 @@ class fleet_vehicle_issue(models.Model):
                 raise UserError('Issues that have progressed beyond "Draft" state may not be removed.')
         return super(fleet_vehicle_issue, self).unlink()
 
-    @api.one
+    @api.multi
     def action_confirm(self):
         self.state = 'confirm'
         if not self.date_open:
             self.date_open = fields.Date.today()
 
-    @api.one
+    @api.multi
     def action_done(self):
         self.state = 'done'
         self.date_closed = fields.Date.today()
 
-    @api.one
+    @api.multi
     def action_cancel(self):
         self.state = 'cancel'
         self.date_closed = fields.Date.today()
@@ -124,7 +124,7 @@ class fleet_vehicle_cost(models.Model):
     _inherit = 'fleet.vehicle.cost'
 
     @api.model
-    @api.returns('self', lambda value: value.id)
+    # @api.returns('self', lambda value: value.id)
     def create(self, vals):
         res = super(fleet_vehicle_cost, self).create(vals)
         # let's search for the issue context

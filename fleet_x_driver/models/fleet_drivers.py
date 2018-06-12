@@ -28,7 +28,7 @@ class fleet_driver(models.Model):
     dob = fields.Date('Date of Birth')
     gender = fields.Selection([('male', 'Male'), ('female', 'Female')], 'Gender')
     vehicle_id = fields.Many2one('fleet.vehicle', string="Vehicle", index=1,
-                                 track_visibility='onchange', readonly=True,
+                                 track_visibility='onchange',
                                  compute="_compute_vehicle", store=True)
     state = fields.Selection([('draft', 'Draft'),
                               ('unassigned', 'Unassigned'),
@@ -51,12 +51,12 @@ class fleet_driver(models.Model):
     location_id = fields.Many2one('fleet.vehicle.location', 'Operational Location',
                                   related="vehicle_id.location_id", store=True)
 
-    @api.one
+    @api.multi
     @api.depends('previous_assignment_ids')
     def _get_assignment_count(self):
         self.previous_assignment_count = len(self.previous_assignment_ids)
 
-    @api.one
+    @api.multi
     def _get_attachment_number(self):
         '''
         returns the number of attachments attached to a record
@@ -65,12 +65,12 @@ class fleet_driver(models.Model):
         self.attachment_count = self.env['ir.attachment'].search_count([('res_model', '=', self._name),
                                                                        ('res_id', '=', self.id)])
 
-    @api.one
+    @api.multi
     @api.depends('issue_ids')
     def _get_issue_count(self):
         self.issue_count = len(self.issue_ids)
 
-    @api.one
+    @api.multi
     @api.depends('previous_assignment_ids')
     def _compute_vehicle(self):
         self.vehicle_id = None
@@ -80,7 +80,7 @@ class fleet_driver(models.Model):
             return
         self.vehicle_id = self.previous_assignment_ids[0].vehicle_id
 
-    @api.one
+    @api.multi
     def _set_date_license_exp(self):
         if self.state == 'license_exp' and fields.Date.from_string(self.date_license_exp) > datetime.now().date():
             if len(self.vehicle_id):
@@ -99,7 +99,7 @@ class fleet_driver(models.Model):
             domain = [('state', '=', 'license_exp')]
         return domain
 
-    @api.model
+    @api.multi
     def _cron_drvLic_update(self):
         """
         Updating all the drivers with expired license.
@@ -114,12 +114,14 @@ class fleet_driver(models.Model):
     @api.multi
     def action_unassign(self):
         for driver in self:
-            vehicle = driver.vehicle_id.id
-            if vehicle.vehicle_driver_id.id == driver.id:
+            vehicle = None
+            if vehicle and vehicle.driver_id:
+                vehicle = driver.vehicle_id.id
+            if vehicle and vehicle.vehicle_driver_id.id == driver.id:
                 vehicle.write({'vehicle_driver_id': None})
-            elif vehicle.alt_vehicle_driver_id.id == driver.id:
+            elif vehicle and vehicle.alt_vehicle_driver_id.id == driver.id:
                 vehicle.write({'alt_vehicle_driver_id': None, })
-            driver.write({'state': 'unassigned', 'vehicle_id': None})
+            driver.write({'state': 'unassigned', 'vehicle_id': None, 'previous_assignment_ids': None})
         return True
 
     @api.multi
@@ -162,18 +164,18 @@ class fleet_driver(models.Model):
 class fleet_vehicle(models.Model):
     _inherit = "fleet.vehicle"
 
-    @api.one
+    @api.multi
     @api.depends('previous_assignment_ids')
     def _get_assignment_count(self):
         self.previous_assignment_count = len(self.previous_assignment_ids)
 
-    @api.one
+    @api.multi
     @api.constrains('vehicle_driver_id', 'alt_vehicle_driver_id')
     def _check_drivers(self):
         if self.vehicle_driver_id and self.alt_vehicle_driver_id and self.vehicle_driver_id.id == self.alt_vehicle_driver_id.id:
             raise UserError('Primary and Alternate drivers can not be the same')
 
-    @api.one
+    @api.multi
     def _set_driver(self):
         assignment_obj = self.env['fleet.driver.assignment']
         domain = [('vehicle_id', '=', self.id), ('date_end', 'in', (None, False)), ('type', '=', 'primary')]
@@ -197,7 +199,7 @@ class fleet_vehicle(models.Model):
         })
         self.vehicle_driver_id.state = 'assigned'
 
-    @api.one
+    @api.multi
     def _set_alt_driver(self):
         assignment_obj = self.env['fleet.driver.assignment']
         domain = [('vehicle_id', '=', self.id), ('date_end', 'in', (None, False)), ('type', '=', 'secondary')]

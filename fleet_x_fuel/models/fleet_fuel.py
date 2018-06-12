@@ -234,7 +234,7 @@ class fleet_fuel_coupon(models.Model):
         coupon = self[0]
         if coupon.amount_remaining == 0:
             return
-        compose_form = self.env.ref('fleet.fleet_vehicle_log_fuel_form', False)
+        compose_form = self.env.ref('fleet.fleet_vehicle_log_fuel_view_form', False)
         fuel_log_obj = self.env['fleet.vehicle.log.fuel']
         price = fuel_log_obj._get_default_price()
         ctx = {
@@ -331,11 +331,11 @@ class fleet_vehicle_log_fuel(models.Model):
         left_ids = self.search([('vehicle_id', '=', self.vehicle_id.id),
                                 ('date', '<=', self.date),
                                 ('odometer_id.value', '<=', self.odometer),
-                                ('id', '!=', self.id)], limit=1, order="date desc, odometer desc, id desc")
+                                ], limit=1, order="date desc, odometer desc, id desc")
         right_ids = self.search([('vehicle_id', '=', self.vehicle_id.id),
                                 ('date', '>=', self.date),
                                 ('odometer_id.value', '>=', self.odometer),
-                                ('id', '!=', self.id)], limit=1, order="date asc, odometer asc, id asc")
+                                ], limit=1, order="date asc, odometer asc, id asc")
         if len(left_ids) > 0:
             left = left_ids[0]
         if len(right_ids) > 0:
@@ -370,11 +370,11 @@ class fleet_vehicle_log_fuel(models.Model):
 
     @api.multi
     def _rebuild_chain(self):
-        left, right = self._get_siblings()[0]
-        if left:
-            left.right_id = self.id
-        if right:
-            self.right_id = right.id
+        # left, right = self._get_siblings()[0]
+        # if left:
+        self.right_id = self.id
+        # if right:
+        self.right_id = self.id
 
     @api.multi
     def write(self, data):

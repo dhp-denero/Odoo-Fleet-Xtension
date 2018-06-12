@@ -15,8 +15,8 @@
                     <header>
                         <button name="action_confirm" type="object" states="draft"
                             groups="fleet.fleet_group_manager" string="Confirm" class="oe_highlight" />
-                        <button name="action_print" type="object" states="active"
-                            groups="fleet.fleet_group_user" string="Print Coupon" class="oe_highlight" />
+                        <!-- <button name="action_print" type="object" states="active"
+                            groups="fleet.fleet_group_user" string="Print Coupon" class="oe_highlight" /> -->
                         <button name="action_log_fuel" type="object" states="active"
                             groups="fleet.fleet_group_user" string="Log Fuel Collected"
                             class="oe_highlight" />
@@ -152,7 +152,7 @@
             <field name="view_id" ref="fleet_fuel_coupon_tree" />
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to add a Fuel Coupans to the system.
+                Click to add a Fuel Coupons to the system.
               </p>
             </field>
         </record>
@@ -294,8 +294,10 @@
             <field name="res_model">fleet.vehicle.log.fuel</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form,graph</field>
-            <field name="context">{"search_default_groupby_vehicle" : True,
-                "search_default_efficiency_alert" : True}</field>
+            <field name="context">{
+                "search_default_groupby_vehicle" : True,
+                "search_default_efficiency_alert" : True
+            }</field>
         </record>
         <menuitem action="fleet_vehicle_log_fuel_act_alert" name="Consumption Alerts"
             parent="fleet.fleet_fuel" sequence="3"

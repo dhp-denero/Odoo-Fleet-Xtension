@@ -18,18 +18,16 @@
                         <group>
                             <label for="date_start" string="Duration"/>
                                 <div>
-                                    <group col="3">
-                                        <field name="date_start" nolabel="1" class="oe_inline"/><label string="-" class="oe_inline"/>
+                                        <field name="date_start" nolabel="1" class="oe_inline"/>
+                                        <label string="-" class="oe_inline"/>
                                         <field name="date_end" nolabel="1" class="oe_inline"/>
-                                    </group>
                                 </div>
-                                
+
                                 <label for="odometer_start" string="Distance"/>
                                 <div>
-                                    <group col="3">
-                                        <field name="odometer_start" nolabel="1" class="oe_inline"/><label string="-" class="oe_inline"/>
-                                        <field name="odometer_end" nolabel="1" class="oe_inline"/>
-                                    </group>
+                                    <field name="odometer_start" nolabel="1" class="oe_inline"/>
+                                    <label string="-" class="oe_inline"/>
+                                    <field name="odometer_end" nolabel="1" class="oe_inline"/>
                                 </div>
                         </group>
                         </group>
@@ -132,9 +130,9 @@
                             <field name="name" default_focus="1" placeholder="Name" />
                         </h1>   
                         <label for="vehicle_id"/>
-                            <h4>
-                                <field name="vehicle_id" class="oe_inline"/>
-                            </h4>  
+                        <h4>
+                            <field name="vehicle_id" />
+                        </h4>
                         <field name="identification_no" placeholder="Indentification #..."/>                   
                         <field name="category_id" widget="many2many_tags" placeholder="Tags..."/>
                     </div>
@@ -176,7 +174,7 @@
                         <group>
                             <field name="date_hired" />
                             <field name="date_license_exp"/>
-                            <field name="location_id" readonly="1"/>
+                            <field name="location_id" readonly="0"/>
                             <field name="function" placeholder="e.g. Truck Driver"/>
                             <field name="phone" placeholder="e.g. +32.81.81.37.00"/>                            
                             <field name="user_ids" invisible="1"/>
@@ -187,6 +185,7 @@
                     <notebook colspan="4">
                         <page name='internal_notes' string="Internal Notes">
                             <field name="comment" placeholder="Put an internal note..."/>
+                            <field name="previous_assignment_ids" invisible="1"/>
                         </page>
                     </notebook>
                 </sheet>
@@ -224,7 +223,7 @@
         <record model="ir.ui.view" id="res_driver_kanban_view">
             <field name="name">fleet.driver.kanban</field>
             <field name="model">fleet.driver</field>
-    <field name="sequence" eval="2"/>
+            <field name="sequence" eval="2"/>
             <field name="arch" type="xml">
                 <kanban>
                     <field name="color"/>
@@ -245,15 +244,19 @@
                         <t t-name="kanban-box">
                             <div class="oe_kanban_vignette oe_semantic_html_override">
                                 <a type="open">
-                                    <div class="o_kanban_image">
-                                        <img t-att-src="kanban_image('fleet.driver', 'image_small', record.id.value)"/>
+                                    <div class="o_kanban_image mr8">
+                                        <img t-att-src="kanban_image('fleet.driver', 'image_small', record.id.value)" class="img-responsive"/>
                                     </div>
-                                    <t t-if="record.has_image.raw_value === false">
+                                    <!-- <t t-if="record.has_image.raw_value === false">
                                         <img t-att-src='_s + "/base/static/src/img/avatar.png"' class="oe_kanban_image"/>
-                                    </t>
+                                    </t> -->
                                 </a>
                                 <div class="oe_kanban_details">
-                                    <h4 class="oe_driver_heading"><a type="open"><field name="display_name"/></a></h4>
+                                    <h5 class="oe_driver_heading">
+                                        <a type="open">
+                                            <field name="display_name"/>
+                                        </a>
+                                    </h5>
                                     <div class="oe_kanban_driver_categories"/>
                                     <div class="oe_kanban_driver_links"/>
                                     <ul>

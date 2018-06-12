@@ -281,6 +281,9 @@ class fleet_vehicle_cost(models.Model):
 
     @api.model
     def create(self, data):
-        vehicle = self.env['fleet.vehicle'].browse(data['vehicle_id'])
-        data['ref'] = '%s-%s' % (vehicle.license_plate, self.env['ir.sequence'].next_by_code('fleet.vehicle.cost.ref'))
+        if 'parent_id' in data and data['parent_id']:
+            parent = self.browse(data['parent_id'])
+            vehicle = parent.vehicle_id
+            data['ref'] = '%s-%s' % (vehicle.license_plate, self.env['ir.sequence'].next_by_code('fleet.vehicle.cost.ref'))
+            # vehicle = self.env['fleet.vehicle'].browse(data['vehicle_id'])
         return super(fleet_vehicle_cost, self).create(data)
