@@ -272,7 +272,7 @@ class fleet_fuel_coupon(models.Model):
     #     This will be shown in the menu item for drivers,
     #     """
     #     domain = []
-    #     if self.env['res.users'].has_group('fleet.group_fleet_manager'):
+    #     if self.env['res.users'].has_group('fleet.fleet_group_manager'):
     #         domain = [('state', '=', 'draft')]
     #     return domain
 
@@ -301,29 +301,30 @@ class fleet_vehicle_log_fuel(models.Model):
     @api.multi
     @api.depends('right_id')
     def _get_consumption_stats(self):
-        if not isinstance(self.id, (int)) or not self.liter:
-            return
-        if self.end_odometer:
-            self.odometer_delta = self.end_odometer - self.odometer
-        else:
-            # we use the current vehicle odometer stats then
-            self.odometer_delta = self.vehicle_id.odometer - self.odometer
-        self.efficiency = self.odometer_delta / self.liter
-
-        # let's attempt to identify outliers
-        # thought process here is that we need at least five logs for this vehicle
-        # to take consumption reading seriously
-        if len(self.vehicle_id.log_fuel) > 5 and self.efficiency and self.vehicle_id.km_per_lit > 0:  # we need some data to get a better understanding of average km/l
-            buffer = self.sudo().env['ir.values'].get_default('fleet.fuel.log', 'default_efficiency_alert_buffer')
-            buffer = buffer or 5
-            if self.efficiency > (self.vehicle_id.km_per_lit + buffer):
-                self.efficiency_alert = True
-                self.efficiency_alert_type = 'over'
-            elif self.efficiency < (self.vehicle_id.km_per_lit - buffer):
-                self.efficiency_alert = True
-                self.efficiency_alert_type = 'under'
+        for rec in self:
+            if not isinstance(rec.id, (int)) or not rec.liter:
+                return
+            if rec.end_odometer:
+                rec.odometer_delta = rec.end_odometer - rec.odometer
             else:
-                self.efficiency_alert = False
+                # we use the current vehicle odometer stats then
+                rec.odometer_delta = rec.vehicle_id.odometer - rec.odometer
+            rec.efficiency = rec.odometer_delta / rec.liter
+
+            # let's attempt to identify outliers
+            # thought process here is that we need at least five logs for this vehicle
+            # to take consumption reading seriously
+            if len(rec.vehicle_id.log_fuel) > 5 and rec.efficiency and rec.vehicle_id.km_per_lit > 0:  # we need some data to get a better understanding of average km/l
+                buffer = rec.sudo().env['ir.values'].get_default('fleet.fuel.log', 'default_efficiency_alert_buffer')
+                buffer = buffer or 5
+                if rec.efficiency > (rec.vehicle_id.km_per_lit + buffer):
+                    rec.efficiency_alert = True
+                    rec.efficiency_alert_type = 'over'
+                elif rec.efficiency < (rec.vehicle_id.km_per_lit - buffer):
+                    rec.efficiency_alert = True
+                    rec.efficiency_alert_type = 'under'
+                else:
+                    rec.efficiency_alert = False
 
     @api.multi
     def _get_siblings(self):
@@ -370,11 +371,11 @@ class fleet_vehicle_log_fuel(models.Model):
 
     @api.multi
     def _rebuild_chain(self):
-        # left, right = self._get_siblings()[0]
-        # if left:
-        self.right_id = self.id
-        # if right:
-        self.right_id = self.id
+        left, right = self._get_siblings()
+        if left:
+            left.right_id = self.id
+        if right:
+            self.right_id = right.id
 
     @api.multi
     def write(self, data):

@@ -90,10 +90,10 @@
             <field name="arch" type="xml">
                 <form string="Issue">
                     <header>
-                        <button name="action_confirm" type="object" states="draft" groups="fleet.group_fleet_manager" string="Confirm" class="oe_highlight"/>
-                        <button name="action_log_cost" type="object"  attrs="{'invisible': ['|',  ('state','!=', 'confirm'), ('cost_id','!=', False)]}" groups="fleet.group_fleet_manager" string="Log Cost" class="oe_highlight"/>
-                        <button name="action_done" type="object" states="confirm" groups="fleet.group_fleet_manager" string="Resolved" class="oe_highlight"/>
-                        <button name="action_cancel" type="object" states="draft,confirm" groups="fleet.group_fleet_manager" string="Cancel"/>
+                        <button name="action_confirm" type="object" states="draft" groups="fleet.fleet_group_manager" string="Confirm" class="oe_highlight"/>
+                        <button name="action_log_cost" type="object"  attrs="{'invisible': ['|',  ('state','!=', 'confirm'), ('cost_id','!=', False)]}" groups="fleet.fleet_group_manager" string="Log Cost" class="oe_highlight"/>
+                        <button name="action_done" type="object" states="confirm" groups="fleet.fleet_group_manager" string="Resolved" class="oe_highlight"/>
+                        <button name="action_cancel" type="object" states="draft,confirm" groups="fleet.fleet_group_manager" string="Cancel"/>
                         <field name="state" widget="statusbar"/>
                     </header>
                     <sheet>

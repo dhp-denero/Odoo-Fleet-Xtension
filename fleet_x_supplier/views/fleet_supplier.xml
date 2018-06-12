@@ -2,7 +2,7 @@
 <openerp>
 	<data>
 	
-        <menuitem name="Suppliers" parent="fleet.menu_root" id="fleet.fleet_supplier" sequence="5" groups="fleet.group_fleet_user"/>
+        <menuitem name="Suppliers" parent="fleet.menu_root" id="fleet.fleet_supplier" sequence="5" groups="fleet.fleet_group_user"/>
        <menuitem action="base.action_partner_supplier_form" id="fleet_supplier" parent="fleet.fleet_supplier" sequence="1"/>
        
         

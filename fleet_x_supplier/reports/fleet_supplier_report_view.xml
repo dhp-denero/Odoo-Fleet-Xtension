@@ -61,7 +61,7 @@
 		
 		<menuitem id="menu_report_fleet_supplier" parent="fleet.menu_fleet_reporting"
 			action="action_report_fleet_supplier" sequence="27"
-			groups="fleet.group_fleet_user" />
+			groups="fleet.fleet_group_user" />
 
 	</data>
 </openerp>

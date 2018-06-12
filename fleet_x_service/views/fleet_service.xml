@@ -113,9 +113,9 @@
                 <form string="Scheduled Services">
                     <header>
                         <button name="action_log_service" type="object" string="Mark Done"
-                            states="open,overdue" class="oe_highlight" groups="fleet.group_fleet_manager" />
+                            states="open,overdue" class="oe_highlight" groups="fleet.fleet_group_manager" />
                         <button name="action_cancel" type="object" states="open,overdue"
-                            groups="fleet.group_fleet_manager" string="Cancel" />
+                            groups="fleet.fleet_group_manager" string="Cancel" />
                         <field name="state" widget="statusbar" />
                     </header>
                     <sheet>

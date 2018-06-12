@@ -95,7 +95,7 @@ class fleet_driver(models.Model):
         This will be shown in the menu item for drivers,
         """
         domain = []
-        if self.env['res.users'].has_group('fleet_x.group_fleet_manager'):
+        if self.env['res.users'].has_group('fleet_x.fleet_group_manager'):
             domain = [('state', '=', 'license_exp')]
         return domain
 

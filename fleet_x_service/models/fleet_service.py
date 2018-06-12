@@ -98,7 +98,7 @@ class fleet_service_schedule(models.Model):
         This will be shown in the menu item for drivers,
         """
         domain = []
-        if self.env.user.has_group('fleet.group_fleet_user'):
+        if self.env.user.has_group('fleet.fleet_group_user'):
             domain = [('state', '=', 'open')]
         return domain
 
@@ -117,7 +117,7 @@ class fleet_service_schedule(models.Model):
     @api.multi
     def action_log_service(self):
         assert len(self) == 1, 'This option should only be used for a single id at a time.'
-        compose_form = self.env.ref('fleet.fleet_vehicle_log_services_form', False)
+        compose_form = self.env.ref('fleet.fleet_vehicle_log_services_view_form', False)
         ctx = dict(
             default_schedule_id=self.id,
             default_vehicle_id=self.vehicle_id.id,

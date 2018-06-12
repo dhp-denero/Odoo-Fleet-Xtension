@@ -9,7 +9,7 @@
             report_type="qweb-pdf"
             name="fleet_x_fuel.report_fuel_coupon" 
             file="fleet_x_fuel.report_fuel_coupon"
-            groups="fleet.group_fleet_manager"
+            groups="fleet.fleet_group_manager"
         />
     
 

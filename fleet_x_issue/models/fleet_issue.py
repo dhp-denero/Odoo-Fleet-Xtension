@@ -60,7 +60,7 @@ class fleet_vehicle_issue(models.Model):
         assert len(self) == 1, 'This option should only be used for a single id at a time.'
         issue = self[0]
 
-        compose_form = self.env.ref('fleet.fleet_vehicle_costs_form', False)
+        compose_form = self.env.ref('fleet.fleet_vehicle_costs_view_form', False)
         ctx = {
             'default_vehicle_id': issue.vehicle_id.id,
             'default_date': issue.date,
@@ -86,7 +86,7 @@ class fleet_vehicle_issue(models.Model):
         """
 
         domain = []
-        if self.env['res.users'].has_group('fleet.group_fleet_user'):
+        if self.env['res.users'].has_group('fleet.fleet_group_user'):
             domain = [('state', '=', 'draft'), ('state', '=', 'confirmed')]
         return domain
 

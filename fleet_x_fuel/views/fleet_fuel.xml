@@ -40,7 +40,7 @@
                         </div>
                         <group>
                             <group>
-                                <field name="code" groups="fleet.group_fleet_manager" />
+                                <field name="code" groups="fleet.fleet_group_manager" />
                                 <field name="fuel_type" attrs="{'readonly': [('state','!=', 'draft')]}" />
                                 <field name="odometer" attrs="{'readonly': [('state','!=', 'draft')]}" />
                                 <field name="amount" attrs="{'readonly': [('state','!=', 'draft')]}" />
@@ -239,7 +239,7 @@
             <field name="arch" type="xml">
                 <field name="amount" position="after">
                     <field name="efficiency" />
-                    <field name="efficiency_alert" invisible="1" />
+                    <field name="efficiency_alert" invisible="0" />
                 </field>
 
                 <xpath expr="//tree" position="attributes">
