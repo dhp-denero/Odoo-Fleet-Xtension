@@ -12,6 +12,10 @@
             parent="fleet.fleet_configuration" id="fleet.fleet_vehicle_service_types_menu"
             groups="fleet.fleet_group_manager" />
 
+        <record id='fleet.fleet_vehicle_odometer_action' model='ir.actions.act_window'>
+            <field name="context">{}</field>
+        </record>
+
         <!-- @todo is this necessary? -->
         <record id="action_vehicle_kanban_view1" model="ir.actions.act_window.view">
             <field eval="0" name="sequence" />
