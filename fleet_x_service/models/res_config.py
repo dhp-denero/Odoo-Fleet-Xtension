@@ -34,10 +34,10 @@ class fleet_config_settings(models.TransientModel):
         IrConfigParam = self.env['ir.config_parameter']
         res = {
             'default_repair_scheduling_interval': safe_eval(IrConfigParam.get_param('fleet_x_service.default_repair_scheduling_interval', 'False') or False),
-            'default_repair_scheduling_time': int(IrConfigParam.get_param('fleet_x_service.default_repair_scheduling_time', 'False')) or 0,
+            'default_repair_scheduling_time': int(IrConfigParam.get_param('fleet_x_service.default_repair_scheduling_time', 0)) or 0,
 
-            'default_repair_scheduling_odometer': int(IrConfigParam.get_param('fleet_x_service.default_repair_scheduling_odometer', 'False')) or 0,
-            'default_repair_scheduling_notice': int(IrConfigParam.get_param('fleet_x_service.default_repair_scheduling_notice', 'False')) or 0
+            'default_repair_scheduling_odometer': int(IrConfigParam.get_param('fleet_x_service.default_repair_scheduling_odometer', 0)) or 0,
+            'default_repair_scheduling_notice': int(IrConfigParam.get_param('fleet_x_service.default_repair_scheduling_notice', 0)) or 0
         }
         return res
 
