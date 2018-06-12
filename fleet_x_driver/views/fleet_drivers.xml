@@ -244,7 +244,7 @@
                         <t t-name="kanban-box">
                             <div class="oe_kanban_vignette oe_semantic_html_override">
                                 <a type="open">
-                                    <div class="o_kanban_image mr8">
+                                    <div class="o_kanban_image mr8" style="height: 90px !important;">
                                         <img t-att-src="kanban_image('fleet.driver', 'image_small', record.id.value)" class="img-responsive"/>
                                     </div>
                                     <!-- <t t-if="record.has_image.raw_value === false">
@@ -263,7 +263,9 @@
                                         <li t-if="record.vehicle_id.raw_value"><field name="vehicle_id"/></li>
                                         <li t-if="record.phone.raw_value"><field name="phone"/></li>
                                         <li t-if="record.function.raw_value"><field name="function"/></li>                                        
-                                        <li t-if="record.email.raw_value"><a t-attf-href="mailto:#{record.email.raw_value}"><field name="email"/></a></li>
+                                        <li t-if="record.email.raw_value">
+                                            <a t-attf-href="mailto:#{record.email.raw_value}"><field name="email"/></a>
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
