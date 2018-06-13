@@ -224,12 +224,12 @@ class fleet_vehicle(models.Model):
         })
         self.alt_vehicle_driver_id.state = 'assigned'
 
-    vehicle_driver_id = fields.Many2one('fleet.driver', 'Assigned Driver (Primary)',
+    vehicle_driver_id = fields.Many2one('fleet.driver', 'Primary Driver',
                                         help='Primary driver of the vehicle',
                                         track_visibility='onchange',
                                         inverse="_set_driver",
                                         domain=[('state', '=', 'unassigned')])
-    alt_vehicle_driver_id = fields.Many2one('fleet.driver', 'Assigned Driver (Secondary)',
+    alt_vehicle_driver_id = fields.Many2one('fleet.driver', 'Secondary Driver',
                                             help='Secondary driver of the vehicle',
                                             track_visibility='onchange',
                                             inverse="_set_alt_driver",
@@ -282,8 +282,15 @@ class fleet_driver_assignment(models.Model):
     _name = 'fleet.driver.assignment'
     _order = 'date_start DESC, id DESC'
 
-    vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', requried=True)
-    driver_id = fields.Many2one('fleet.driver', 'Driver', required=True)
+    vehicle_id = fields.Many2one(
+        'fleet.vehicle', 'Vehicle', requried=True,
+    )
+    driver_id = fields.Many2one(
+        'fleet.driver', 'Driver', required=True,
+        domain=[
+            ('state', '=', 'unassigned')
+        ]
+    )
     date_start = fields.Date('Start Date', required=True, help='Vehicle assignment start-date')
     date_end = fields.Date('End Date', help='Vehicle assignment end-date', default=False)
     notes = fields.Text('Notes')

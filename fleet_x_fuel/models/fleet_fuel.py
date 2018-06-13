@@ -5,8 +5,8 @@ _logger = logging.getLogger(__name__)
 
 from odoo import models, fields, api
 from odoo.exceptions import UserError
-
-from dateutil import relativedelta
+from ast import literal_eval
+from dateutil.relativedelta import relativedelta
 import string
 from datetime import datetime, date
 import random
@@ -57,8 +57,9 @@ class fleet_vehicle(models.Model):
 
     @api.model
     def cron_issue_coupon(self):
-        ir_values = self.sudo().env['ir.values']
-        run = ir_values.get_default('fleet.fuel.coupon', 'default_coupon_creation')
+        # ir_values = self.sudo().env['ir.values']
+        # run = ir_values.get_default('fleet.fuel.coupon', 'default_coupon_creation')
+        run = literal_eval(self.env['ir.config_parameter'].get_param('fleet_x_fuel.default_coupon_creation', 'False'))
         if not run:  # we are ensuring that coupons can indeed be created programatically
             return
         domain = [

@@ -45,8 +45,8 @@ class fleet_vehicle_odometer(models.Model):
         previous, next = self._get_neighbours()
         if len(previous) and previous.value > self.value:
             raise UserError('Odometer reading can not be lesser than the last recorded odometer reading for this vehicle')
-        if len(next) and next.value < self.value:
-            raise UserError('Odometer reading can not be greater than the next recorded odometer reading for this vehicle')
+        # if len(next) and next.value < self.value:
+        #     raise UserError('Odometer reading can not be greater than the next recorded odometer reading for this vehicle')
         return True
 
 

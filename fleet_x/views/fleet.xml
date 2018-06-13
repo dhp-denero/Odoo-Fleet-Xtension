@@ -16,6 +16,10 @@
             <field name="context">{}</field>
         </record>
 
+        <record id='fleet.fleet_vehicle_model_brand_action' model='ir.actions.act_window'>
+            <field name="name">Vehicle Make</field>
+        </record>
+
         <!-- @todo is this necessary? -->
         <record id="action_vehicle_kanban_view1" model="ir.actions.act_window.view">
             <field eval="0" name="sequence" />
@@ -44,6 +48,10 @@
             <field name="model">fleet.vehicle</field>
             <field name="inherit_id" ref="fleet.fleet_vehicle_view_form" />
             <field name="arch" type="xml">
+
+                <field name="vin_sn" position="attributes">
+                    <attribute name="string">VIN</attribute>
+                </field>
 
                 <field name="color" position="after">
                     <field name="fueltankcap" />

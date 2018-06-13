@@ -143,7 +143,7 @@
             </field>
         </record>
         <record id="open_fleet_fuel_coupon" model="ir.actions.act_window">
-            <field name="name">Fuel Coupons</field>
+            <field name="name">Fuel Card</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">fleet.fuel.coupon</field>
             <field name="view_type">form</field>
@@ -152,7 +152,7 @@
             <field name="view_id" ref="fleet_fuel_coupon_tree" />
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to add a Fuel Coupons to the system.
+                Click to add a Fuel Card to the system.
               </p>
             </field>
         </record>
