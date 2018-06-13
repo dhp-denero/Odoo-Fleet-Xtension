@@ -1,24 +1,23 @@
 
-from openerp import tools
-from openerp.osv import fields, osv
-from openerp.tools.translate import _
+from odoo import fields, models, api, _
 
-class wizard_report_fleet_supplier(osv.osv_memory):
+
+class wizard_report_fleet_supplier(models.TransientModel):
 
     _name = 'wizard.report.fleet.supplier'
     _description = 'Wizard that opens supplier cost logs'
-    _columns = {
-        'vendor_id': fields.many2one('res.partner', 'Supplier', domain="[('supplier','=',True)]", required=True),
-        'choose_date': fields.boolean('Choose a Particular Period'),
-        'date_from': fields.date('Date From'),
-        'date_to': fields.date('Date To'),
-    }
+
+    vendor_id = fields.Many2one('res.partner', 'Supplier', domain="[('supplier','=',True)]", required=True)
+    choose_date = fields.Boolean('Choose a Particular Period')
+    date_from = fields.Date('Date From')
+    date_to = fields.Date('Date To')
 
     _defaults = {
         'choose_date': False,
-        'date_to' : fields.date.today()
+        'date_to': fields.date.today()
     }
 
+    @api.multi
     def open_table(self, cr, uid, ids, context=None):
         if context is None:
             context = {}

@@ -11,6 +11,7 @@ import string
 from datetime import datetime, date
 import random
 import operator
+from odoo.tools.safe_eval import safe_eval
 
 
 class fleet_vehicle(models.Model):
@@ -283,7 +284,9 @@ class fleet_vehicle_log_fuel(models.Model):
     _order = 'date desc, odometer desc, id desc'
 
     def _get_default_price(self):
-        return self.sudo().env['ir.values'].get_default('fleet.fuel.log', 'default_price_per_lt')
+        IrConfigParam = self.env['ir.config_parameter']
+        default_price_per_lt = safe_eval(IrConfigParam.get_param('fleet_x_fuel.default_price_per_lt', 'False') or 0.0)
+        return default_price_per_lt
 
     coupon_id = fields.Many2one('fleet.fuel.coupon', 'Coupon', domain=[('state', '=', 'active')], ondelete='cascade')
     vendor_id = fields.Many2one('res.partner', 'Supplier', domain="[('supplier','=',True)]")

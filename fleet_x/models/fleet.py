@@ -248,12 +248,12 @@ class fleet_vehicle(models.Model):
         self.attachment_count = self.env['ir.attachment'].search_count([('res_model', '=', self._name),
                                                                         ('res_id', '=', self.id)])
 
-    def action_get_attachment_tree_view(self, cr, uid, ids, context=None):
-        model, action_id = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'base', 'action_attachment')
-        action = self.pool.get(model).read(cr, uid, action_id, context=context)
-        action['context'] = {'default_res_model': self._name, 'default_res_id': ids[0]}
-        action['domain'] = str(['&', ('res_model', '=', self._name), ('res_id', 'in', ids)])
-        return action
+    @api.multi
+    def action_get_attachment_tree_view(self):
+        res = self.env['ir.actions.act_window'].for_xml_id('base', 'action_attachment')
+        res['domain'] = [('res_model', '=', 'fleet.vehicle'), ('res_id', 'in', self.ids)]
+        res['context'] = {'default_res_model': 'fleet.vehicle', 'default_res_id': self.ids[0]}
+        return res
 
 
 class fleet_vehicle_model(models.Model):

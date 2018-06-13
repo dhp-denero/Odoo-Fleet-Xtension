@@ -56,9 +56,9 @@ class fleet_service_schedule(models.Model):
 
     name = fields.Char('Reference', readonly=True)
     vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
-    date = fields.Date('Scheduled On', required=True, default=fields.Date.today())
-    date_deadline = fields.Date('Deadline', required=True, default=_get_date_deadline)
-    date_closed = fields.Date('Closed Date')
+    date = fields.Datetime('Scheduled On', required=True, default=fields.Date.today())
+    date_deadline = fields.Datetime('Deadline', required=True, default=_get_date_deadline)
+    date_closed = fields.Datetime('Closed Date')
     state = fields.Selection([('open', 'Open'),
                               ('overdue', 'Overdue'),
                               ('done', 'Done'),
@@ -66,6 +66,7 @@ class fleet_service_schedule(models.Model):
     service_log_id = fields.Many2one('fleet.vehicle.log.services', 'Service Log', readonly=True, inverse='_set_service_id')
     note = fields.Text('Description')
     auto_generated = fields.Boolean()
+    cost_subtype_id = fields.Many2one('fleet.service.type', 'Service Type', required=True)
 
     @api.one
     @api.constrains('date_deadline', 'date')
@@ -122,12 +123,16 @@ class fleet_service_schedule(models.Model):
             default_schedule_id=self.id,
             default_vehicle_id=self.vehicle_id.id,
             default_odometer=self.vehicle_id.odometer,
+            default_schedule_log_date=self.date,
+            default_cost_subtype_id=self.cost_subtype_id.id,
         )
         if self.auto_generated:
             self.env['fleet.vehicle.log.services'].create({
                 'schedule_id': self.id,
                 'vehicle_id': self.vehicle_id.id,
-                'odometer': self.vehicle_id.odometer
+                'odometer': self.vehicle_id.odometer,
+                'schedule_log_date': self.date,
+                'cost_subtype_id': self.cost_subtype_id.id,
             })
         else:
             return {
@@ -262,8 +267,15 @@ class fleet_vehicle_log_services(models.Model):
         if len(self.schedule_id):
             self.schedule_id.service_log_id = self.id
 
+    @api.onchange('vehicle_id')
+    def _onchange_vehicle(self):
+        super(fleet_vehicle_log_services, self)._onchange_vehicle()
+        if self.schedule_id:
+            self.cost_subtype_id = self.schedule_id.cost_subtype_id.id and self.schedule_id.cost_subtype_id.id or False
+
     name = fields.Char('Reference', readonly=True)
     schedule_id = fields.Many2one('fleet.service.schedule', 'Service schedule', inverse="_set_schedule_id")
+    schedule_log_date = fields.Datetime('Scheduled On', required=True, default=fields.Date.today())
 
     @api.model
     def create(self, data):

@@ -66,6 +66,13 @@ class fleet_driver(models.Model):
                                                                        ('res_id', '=', self.id)])
 
     @api.multi
+    def action_get_attachment_tree_view(self):
+        res = self.env['ir.actions.act_window'].for_xml_id('base', 'action_attachment')
+        res['domain'] = [('res_model', '=', 'fleet.driver'), ('res_id', 'in', self.ids)]
+        res['context'] = {'default_res_model': 'fleet.driver', 'default_res_id': self.ids[0]}
+        return res
+
+    @api.multi
     @api.depends('issue_ids')
     def _get_issue_count(self):
         self.issue_count = len(self.issue_ids)
@@ -191,12 +198,12 @@ class fleet_vehicle(models.Model):
         if len(drivers):
             drivers[0].date_end = fields.Date.today()
             drivers[0].odometer_end = self.odometer
-        self.env['fleet.driver.assignment'].create({
-            'vehicle_id': self.id,
-            'driver_id': self.vehicle_driver_id.id,
-            'date_start': fields.Date.today(),
-            'type': 'primary'
-        })
+        # self.env['fleet.driver.assignment'].create({
+        #     'vehicle_id': self.id,
+        #     'driver_id': self.vehicle_driver_id.id,
+        #     'date_start': fields.Date.today(),
+        #     'type': 'primary'
+        # })
         self.vehicle_driver_id.state = 'assigned'
 
     @api.multi
@@ -216,12 +223,12 @@ class fleet_vehicle(models.Model):
         if len(drivers):
             drivers[0].date_end = fields.Date.today()
             drivers[0].odometer_end = self.odometer
-        self.env['fleet.driver.assignment'].create({
-            'vehicle_id': self.id,
-            'driver_id': self.alt_vehicle_driver_id.id,
-            'date_start': fields.Date.today(),
-            'type': 'secondary'
-        })
+        # self.env['fleet.driver.assignment'].create({
+        #     'vehicle_id': self.id,
+        #     'driver_id': self.alt_vehicle_driver_id.id,
+        #     'date_start': fields.Date.today(),
+        #     'type': 'secondary'
+        # })
         self.alt_vehicle_driver_id.state = 'assigned'
 
     vehicle_driver_id = fields.Many2one('fleet.driver', 'Primary Driver',
@@ -303,6 +310,12 @@ class fleet_driver_assignment(models.Model):
     def create(self, data):
         res = super(fleet_driver_assignment, self).create(data)
         res.odometer_start = res.vehicle_id.odometer
+        vehicle_obj = self.env['fleet.vehicle'].browse(res.vehicle_id.id)
+        if vehicle_obj:
+            if not vehicle_obj.vehicle_driver_id and res.type == 'primary':
+                vehicle_obj.write({'vehicle_driver_id': res.driver_id.id})
+            if not vehicle_obj.alt_vehicle_driver_id and res.type == 'secondary':
+                vehicle_obj.write({'alt_vehicle_driver_id': res.driver_id.id})
         return res
 
     @api.one

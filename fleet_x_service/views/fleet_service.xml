@@ -131,6 +131,7 @@
                                 <field name="date" />
                                 <field name="date_deadline" />
                                 <field name="date_closed" />
+                                <field name="cost_subtype_id"/>
                             </group>
 
                         </group>
@@ -172,6 +173,7 @@
 
                 <field name="vehicle_id" position="after">
                     <field name="schedule_id" />
+                    <field name="schedule_log_date"/>
                 </field>
 
                 <xpath expr="/form/sheet/group[1]" position="before">
