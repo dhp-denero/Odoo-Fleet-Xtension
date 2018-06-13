@@ -185,7 +185,7 @@
                     <notebook colspan="4">
                         <page name='internal_notes' string="Internal Notes">
                             <field name="comment" placeholder="Put an internal note..."/>
-                            <field name="previous_assignment_ids" invisible="0" widget="one2many_list" />
+                            <field name="previous_assignment_ids" invisible="1" widget="one2many_list" />
                         </page>
                     </notebook>
                 </sheet>

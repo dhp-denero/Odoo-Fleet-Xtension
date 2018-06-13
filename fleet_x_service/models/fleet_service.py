@@ -123,16 +123,23 @@ class fleet_service_schedule(models.Model):
             default_vehicle_id=self.vehicle_id.id,
             default_odometer=self.vehicle_id.odometer,
         )
-        return {
-            'name': _('Log Service History'),
-            'type': 'ir.actions.act_window',
-            'view_type': 'form',
-            'view_mode': 'form',
-            'res_model': 'fleet.vehicle.log.services',
-            'views': [(compose_form.id, 'form')],
-            'view_id': compose_form.id,
-            'context': ctx,
-        }
+        if self.auto_generated:
+            self.env['fleet.vehicle.log.services'].create({
+                'schedule_id': self.id,
+                'vehicle_id': self.vehicle_id.id,
+                'odometer': self.vehicle_id.odometer
+            })
+        else:
+            return {
+                'name': _('Log Service History'),
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'fleet.vehicle.log.services',
+                'views': [(compose_form.id, 'form')],
+                'view_id': compose_form.id,
+                'context': ctx,
+            }
 
 
 class fleet_vehicle(models.Model):
