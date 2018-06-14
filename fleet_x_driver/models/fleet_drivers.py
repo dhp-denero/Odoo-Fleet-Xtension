@@ -258,30 +258,29 @@ class fleet_vehicle(models.Model):
         on the vehicle like the model, the drive, the state of the vehicle or its license plate
         """
         for vehicle in self:
-            changes = []
-            if 'model_id' in vals and vehicle.model_id.id != vals['model_id']:
-                value = self.env['fleet.vehicle.model'].browse(vals['model_id']).name
-                oldmodel = vehicle.model_id.name or 'None'
-                changes.append("Model: from '%s' to '%s'" % (oldmodel, value))
+            # changes = []
+            # if 'model_id' in vals and vehicle.model_id.id != vals['model_id']:
+            #     value = self.env['fleet.vehicle.model'].browse(vals['model_id']).name
+            #     oldmodel = vehicle.model_id.name or 'None'
+            #     changes.append("Model: from '%s' to '%s'" % (oldmodel, value))
+            # if 'vehicle_driver_id' in vals and vehicle.vehicle_driver_id.id != vals['vehicle_driver_id']:
+            #     value = self.env['fleet.driver'].browse(vals['vehicle_driver_id']).name
+            #     olddriver = (vehicle.vehicle_driver_id.name) or 'None'
+            #     changes.append("Driver: from '%s' to '%s'" % (olddriver, value))
+            # if 'state_id' in vals and vehicle.state_id.id != vals['state_id']:
+            #     value = self.env['fleet.vehicle.state'].browse(vals['state_id']).name
+            #     oldstate = vehicle.state_id.name or 'None'
+            #     changes.append("State: from '%s' to '%s'" % (oldstate, value))
+            # if 'license_plate' in vals and vehicle.license_plate != vals['license_plate']:
+            #     old_license_plate = vehicle.license_plate or 'None'
+            #     changes.append("License Plate: from '%s' to '%s'" % (old_license_plate, vals['license_plate']))
             if 'vehicle_driver_id' in vals and vehicle.vehicle_driver_id.id != vals['vehicle_driver_id']:
-                value = self.env['fleet.driver'].browse(vals['vehicle_driver_id']).name
-                olddriver = (vehicle.vehicle_driver_id.name) or 'None'
-                changes.append("Driver: from '%s' to '%s'" % (olddriver, value))
-            if 'state_id' in vals and vehicle.state_id.id != vals['state_id']:
-                value = self.env['fleet.vehicle.state'].browse(vals['state_id']).name
-                oldstate = vehicle.state_id.name or 'None'
-                changes.append("State: from '%s' to '%s'" % (oldstate, value))
-            if 'license_plate' in vals and vehicle.license_plate != vals['license_plate']:
-                old_license_plate = vehicle.license_plate or 'None'
-                changes.append("License Plate: from '%s' to '%s'" % (old_license_plate, vals['license_plate']))
-
-            if len(changes) > 0:
-                vehicle.message_post(body=", ".join(changes))
+                vehicle.vehicle_driver_id.action_assign()
+            # if len(changes) > 0:
+            #     vehicle.message_post(body=", ".join(changes))
 
         # @todi what is the purpose here
         vehicle_id = super(fleet_vehicle, self).write(vals)
-        if 'vehicle_driver_id' in vals and vehicle.vehicle_driver_id.id != vals['vehicle_driver_id']:
-            vehicle.vehicle_driver_id.action_assign()
         return vehicle_id
 
 
