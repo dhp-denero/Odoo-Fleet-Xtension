@@ -103,6 +103,12 @@ class fleet_vehicle_department(models.Model):
         return True
 
 
+class FleetVehicleStateInherit(models.Model):
+    _inherit = 'fleet.vehicle.state'
+
+    active = fields.Boolean('Active', default=True)
+
+
 class fleet_vehicle(models.Model):
     _inherit = "fleet.vehicle"
 
