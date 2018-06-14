@@ -5,6 +5,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta, date
+from odoo.tools.safe_eval import safe_eval
 
 
 class fleet_service_type(models.Model):
@@ -49,8 +50,8 @@ class fleet_service_schedule(models.Model):
 
     @api.model
     def _get_date_deadline(self):
-        ir_values = self.sudo().env['ir.values']
-        value = ir_values.get_default('fleet.fuel.service', 'default_repair_scheduling_notice')
+        IrConfigParam = self.env['ir.config_parameter']
+        value = safe_eval(IrConfigParam.get_param('fleet_x_service.default_repair_scheduling_notice', 'False') or 0.0)
         scheduled_date = datetime.now().date() + timedelta(days=value or 10)
         return fields.Date.to_string(scheduled_date)
 
@@ -153,20 +154,20 @@ class fleet_vehicle(models.Model):
 
     @api.model
     def _get_default_scheduling_interval(self):
-        ir_values = self.sudo().env['ir.values']
-        value = ir_values.get_default('fleet.fuel.service', 'default_repair_scheduling_interval')
+        IrConfigParam = self.env['ir.config_parameter']
+        value = safe_eval(IrConfigParam.get_param('fleet_x_service.default_repair_scheduling_interval', 'False') or 0.0)
         return value or 'odometer'
 
     @api.model
     def _get_default_scheduling_time(self):
-        ir_values = self.sudo().env['ir.values']
-        value = ir_values.get_default('fleet.fuel.service', 'default_repair_scheduling_time')
+        IrConfigParam = self.env['ir.config_parameter']
+        value = safe_eval(IrConfigParam.get_param('fleet_x_service.default_repair_scheduling_time', 'False') or 0.0)
         return value or 3
 
     @api.model
     def _get_default_scheduling_odometer(self):
-        ir_values = self.sudo().env['ir.values']
-        value = ir_values.get_default('fleet.fuel.service', 'default_repair_scheduling_odometer')
+        IrConfigParam = self.env['ir.config_parameter']
+        value = safe_eval(IrConfigParam.get_param('fleet_x_service.default_repair_scheduling_odometer', 'False') or 0.0)
         return value or 5000
 
     last_service_id = fields.Many2one('fleet.vehicle.log.services', 'Last Service Log',

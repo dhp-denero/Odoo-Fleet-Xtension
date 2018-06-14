@@ -5,7 +5,6 @@ from odoo.tools.safe_eval import safe_eval
 
 
 class fleet_config_settings(models.TransientModel):
-    _name = 'fleet.config.settings'
     _inherit = 'fleet.config.settings'
 
     default_coupon_creation = fields.Boolean(

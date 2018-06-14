@@ -319,7 +319,8 @@ class fleet_vehicle_log_fuel(models.Model):
             # thought process here is that we need at least five logs for this vehicle
             # to take consumption reading seriously
             if len(rec.vehicle_id.log_fuel) > 5 and rec.efficiency and rec.vehicle_id.km_per_lit > 0:  # we need some data to get a better understanding of average km/l
-                buffer = rec.sudo().env['ir.values'].get_default('fleet.fuel.log', 'default_efficiency_alert_buffer')
+                IrConfigParam = self.env['ir.config_parameter']
+                buffer = safe_eval(IrConfigParam.get_param('fleet_x_fuel.default_efficiency_alert_buffer', 'False') or 0.0)
                 buffer = buffer or 5
                 if rec.efficiency > (rec.vehicle_id.km_per_lit + buffer):
                     rec.efficiency_alert = True

@@ -106,6 +106,12 @@ class fleet_vehicle_department(models.Model):
 class fleet_vehicle(models.Model):
     _inherit = "fleet.vehicle"
 
+    def _get_default_state(self):
+        state = self.env.ref('fleet.vehicle_state_active', raise_if_not_found=False)
+        if not state:
+            state = self.env['fleet.vehicle.state'].search([('name', '=', 'Active')])
+        return state and state.id or False
+
     odometer_ids = fields.One2many(
         'fleet.vehicle.odometer', 'vehicle_id',
         'Odometers', readonly=1
@@ -172,6 +178,7 @@ class fleet_vehicle(models.Model):
                                inverse="_set_odometer_at_purchase")
     warrexp = fields.Date('Date', help="Expiry date of warranty")
     warrexpmil = fields.Integer('(or) Kilometer', help="Expiry Kilometer of warranty")
+    state_id = fields.Many2one('fleet.vehicle.state', 'State', default=_get_default_state, help='Current state of the vehicle', ondelete="set null")
 
     _sql_constraints = [
         ('uniq_license_plate', 'unique(license_plate)', 'The registration # of the vehicle must be unique !'),
