@@ -345,9 +345,23 @@ class fleet_driver_assignment(models.Model):
                             'vehicle_driver_id': driver_id,
                         })
             if vals.get('driver_id', False):
-                driver_id = self.env['fleet.driver'].browse([driver_id])
+                driver_id = vals.get('driver_id', assignment.driver_id and assignment.driver_id.id or False)
+                if driver_id:
+                    driver_id = self.env['fleet.driver'].browse([driver_id])
+                if vehicle_id:
+                    vehicle_id = self.env['fleet.vehicle'].browse([vehicle_id])
+                    if vals.get('type') == 'primary':
+                        if vehicle_id.vehicle_driver_id:
+                            raise UserError('Vehicle is already assigned to another driver of this same type')
+
+                    if vals.get('type') == 'secondary':
+                        if vehicle_id.alt_vehicle_driver_id:
+                            raise UserError('Vehicle is already assigned to another driver of this same type')
+
                 assignment.driver_id.write({'state': 'unassigned'})
+                assignment.driver_id.vehicle_id = False
                 driver_id.action_assign()
+                driver_id.vehicle_id = vals.get('vehicle_id', assignment.vehicle_id and assignment.vehicle_id.id or False)
             if vals.get('type', False):
                 vehicle_id = vals.get('vehicle_id', assignment.vehicle_id and assignment.vehicle_id.id or False)
                 driver_id = vals.get('driver_id', assignment.driver_id and assignment.driver_id.id or False)
