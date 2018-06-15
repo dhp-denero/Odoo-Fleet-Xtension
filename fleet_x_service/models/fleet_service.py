@@ -308,7 +308,8 @@ class fleet_service_maintenance(models.Model):
     vehicle_id = fields.Many2one(
         'fleet.vehicle', 'Vehicle', required=True,
     )
-    maintenance_date = fields.Datetime('Maintenance Date',
+    maintenance_date = fields.Datetime(
+        'Maintenance Date',
         required=True, default=fields.Date.today()
     )
     odometer_unit = fields.Selection(
@@ -323,9 +324,8 @@ class fleet_service_maintenance(models.Model):
 
     @api.model
     def _cron_schedule_service_maintenance(self):
-        service_obj = self.env['fleet.vehicle.log.services']
         res_ids = []
-        maintenance_ids =  self.search([])
+        maintenance_ids = self.search([])
         for maintenance in maintenance_ids.filtered(lambda r: r.vehicle_id):
             if maintenance.odometer >= maintenance.vehicle_id.next_service_odometer:
                 res_ids.append(maintenance)

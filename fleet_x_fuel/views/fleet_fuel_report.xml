@@ -1,19 +1,14 @@
 <?xml version="1.0"?>
-<openerp>
-    <data>
+<odoo>
 
-    <report 
+    <report
             id="action_report_fuel_coupon" 
             model="fleet.fuel.coupon" 
             string="Print Fuel Coupon"
             report_type="qweb-pdf"
-            name="fleet_x_fuel.report_fuel_coupon" 
+            name="fleet_x_fuel.report_fuel_coupon"
             file="fleet_x_fuel.report_fuel_coupon"
             groups="fleet.fleet_group_manager"
         />
-    
 
- 
-        
-    </data>
-</openerp>
+</odoo>

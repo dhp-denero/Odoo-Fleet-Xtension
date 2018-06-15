@@ -27,9 +27,10 @@ class fleet_driver(models.Model):
                                    inverse="_set_date_license_exp")
     dob = fields.Date('Date of Birth')
     gender = fields.Selection([('male', 'Male'), ('female', 'Female')], 'Gender')
-    vehicle_id = fields.Many2one('fleet.vehicle', string="Vehicle", index=1,
-                                 track_visibility='onchange',
-                                 compute="_compute_vehicle", store=True)
+    vehicle_id = fields.Many2one(
+        'fleet.vehicle', string="Vehicle", index=1,
+        track_visibility='onchange'
+    )
     state = fields.Selection([('draft', 'Draft'),
                               ('unassigned', 'Unassigned'),
                               ('assigned', 'Assigned'),
@@ -37,7 +38,7 @@ class fleet_driver(models.Model):
                               ('terminated', 'Terminated')], 'State',
                              default='draft')
     previous_assignment_ids = fields.One2many('fleet.driver.assignment', 'driver_id',
-                                              "Previous Vehicles", readonly=True)
+                                              "Previous Vehicles", readonly=True, inverse="_compute_vehicle")
     previous_assignment_count = fields.Integer('Assignment Count',
                                                compute='_get_assignment_count',
                                                readonly=True)
@@ -54,7 +55,8 @@ class fleet_driver(models.Model):
     @api.multi
     @api.depends('previous_assignment_ids')
     def _get_assignment_count(self):
-        self.previous_assignment_count = len(self.previous_assignment_ids)
+        for rec in self:
+            rec.previous_assignment_count = len(rec.previous_assignment_ids)
 
     @api.multi
     def _get_attachment_number(self):
@@ -62,8 +64,11 @@ class fleet_driver(models.Model):
         returns the number of attachments attached to a record
         FIXME: not working well for classes that inherits from this
         '''
-        self.attachment_count = self.env['ir.attachment'].search_count([('res_model', '=', self._name),
-                                                                       ('res_id', '=', self.id)])
+        for rec in self:
+            rec.attachment_count = self.env['ir.attachment'].search_count([
+                ('res_model', '=', rec._name),
+                ('res_id', '=', rec.id)]
+            )
 
     @api.multi
     def action_get_attachment_tree_view(self):
@@ -75,25 +80,26 @@ class fleet_driver(models.Model):
     @api.multi
     @api.depends('issue_ids')
     def _get_issue_count(self):
-        self.issue_count = len(self.issue_ids)
+        for rec in self:
+            rec.issue_count = len(rec.issue_ids)
 
     @api.multi
     @api.depends('previous_assignment_ids')
     def _compute_vehicle(self):
-        self.vehicle_id = None
-        if not len(self.previous_assignment_ids) or \
-                self.previous_assignment_ids[0].date_end \
-                or self.state == 'unassigned':
-            return
-        self.vehicle_id = self.previous_assignment_ids[0].vehicle_id
+        for rec in self:
+            if rec.previous_assignment_ids:
+                rec.vehicle_id = rec.previous_assignment_ids[0].vehicle_id
+            else:
+                rec.vehicle_id = False
 
     @api.multi
     def _set_date_license_exp(self):
-        if self.state == 'license_exp' and fields.Date.from_string(self.date_license_exp) > datetime.now().date():
-            if len(self.vehicle_id):
-                self.state = 'assigned'
-            else:
-                self.state = 'unassigned'
+        for rec in self:
+            if rec.state == 'license_exp' and fields.Date.from_string(rec.date_license_exp) > datetime.now().date():
+                if len(rec.vehicle_id):
+                    rec.state = 'assigned'
+                else:
+                    rec.state = 'unassigned'
 
     @api.model
     def _needaction_domain_get(self):
@@ -121,14 +127,30 @@ class fleet_driver(models.Model):
     @api.multi
     def action_unassign(self):
         for driver in self:
-            vehicle = None
-            if vehicle and vehicle.driver_id:
-                vehicle = driver.vehicle_id.id
-            if vehicle and vehicle.vehicle_driver_id.id == driver.id:
-                vehicle.write({'vehicle_driver_id': None})
-            elif vehicle and vehicle.alt_vehicle_driver_id.id == driver.id:
-                vehicle.write({'alt_vehicle_driver_id': None, })
-            driver.write({'state': 'unassigned', 'vehicle_id': None, 'previous_assignment_ids': None})
+            driver.write({'state': 'unassigned'})
+            driver.vehicle_id = False
+            assignment_ids = self.env['fleet.driver.assignment'].search([('driver_id', '=', driver.id)])
+            if assignment_ids:
+                assignment_ids.unlink()
+        return True
+
+    @api.multi
+    def action_assign_vehicle(self, vehicle_id, vtype=False):
+        for driver in self:
+            driver.action_assign()
+            if vehicle_id:
+                self.env['fleet.driver.assignment'].create({
+                    'vehicle_id': vehicle_id.id,
+                    'driver_id': driver.id,
+                    'date_start': fields.Date.today(),
+                    'type': vtype
+                })
+        return True
+
+    @api.multi
+    def action_unassign_vehicle(self):
+        for driver in self:
+            driver.action_unassign()
         return True
 
     @api.multi
@@ -174,13 +196,15 @@ class fleet_vehicle(models.Model):
     @api.multi
     @api.depends('previous_assignment_ids')
     def _get_assignment_count(self):
-        self.previous_assignment_count = len(self.previous_assignment_ids)
+        for rec in self:
+            rec.previous_assignment_count = len(rec.previous_assignment_ids)
 
     @api.multi
     @api.constrains('vehicle_driver_id', 'alt_vehicle_driver_id')
     def _check_drivers(self):
-        if self.vehicle_driver_id and self.alt_vehicle_driver_id and self.vehicle_driver_id.id == self.alt_vehicle_driver_id.id:
-            raise UserError('Primary and Alternate drivers can not be the same')
+        for rec in self:
+            if rec.vehicle_driver_id and rec.alt_vehicle_driver_id and rec.vehicle_driver_id.id == rec.alt_vehicle_driver_id.id:
+                raise UserError('Primary and Alternate drivers can not be the same')
 
     @api.multi
     def _set_driver(self):
@@ -198,13 +222,6 @@ class fleet_vehicle(models.Model):
         if len(drivers):
             drivers[0].date_end = fields.Date.today()
             drivers[0].odometer_end = self.odometer
-        # self.env['fleet.driver.assignment'].create({
-        #     'vehicle_id': self.id,
-        #     'driver_id': self.vehicle_driver_id.id,
-        #     'date_start': fields.Date.today(),
-        #     'type': 'primary'
-        # })
-        self.vehicle_driver_id.state = 'assigned'
 
     @api.multi
     def _set_alt_driver(self):
@@ -217,19 +234,11 @@ class fleet_vehicle(models.Model):
             else:
                 drivers[0].date_end = fields.Date.today()
                 drivers[0].odometer_end = self.odometer
-                drivers[0].driver_id.state = 'unassigned'
             return
 
         if len(drivers):
             drivers[0].date_end = fields.Date.today()
             drivers[0].odometer_end = self.odometer
-        # self.env['fleet.driver.assignment'].create({
-        #     'vehicle_id': self.id,
-        #     'driver_id': self.alt_vehicle_driver_id.id,
-        #     'date_start': fields.Date.today(),
-        #     'type': 'secondary'
-        # })
-        self.alt_vehicle_driver_id.state = 'assigned'
 
     vehicle_driver_id = fields.Many2one('fleet.driver', 'Primary Driver',
                                         help='Primary driver of the vehicle',
@@ -257,31 +266,45 @@ class fleet_vehicle(models.Model):
         This function write an entry in the openchatter whenever we change important information
         on the vehicle like the model, the drive, the state of the vehicle or its license plate
         """
+        context = dict(self.env.context or {})
         for vehicle in self:
-            # changes = []
-            # if 'model_id' in vals and vehicle.model_id.id != vals['model_id']:
-            #     value = self.env['fleet.vehicle.model'].browse(vals['model_id']).name
-            #     oldmodel = vehicle.model_id.name or 'None'
-            #     changes.append("Model: from '%s' to '%s'" % (oldmodel, value))
-            # if 'vehicle_driver_id' in vals and vehicle.vehicle_driver_id.id != vals['vehicle_driver_id']:
-            #     value = self.env['fleet.driver'].browse(vals['vehicle_driver_id']).name
-            #     olddriver = (vehicle.vehicle_driver_id.name) or 'None'
-            #     changes.append("Driver: from '%s' to '%s'" % (olddriver, value))
-            # if 'state_id' in vals and vehicle.state_id.id != vals['state_id']:
-            #     value = self.env['fleet.vehicle.state'].browse(vals['state_id']).name
-            #     oldstate = vehicle.state_id.name or 'None'
-            #     changes.append("State: from '%s' to '%s'" % (oldstate, value))
-            # if 'license_plate' in vals and vehicle.license_plate != vals['license_plate']:
-            #     old_license_plate = vehicle.license_plate or 'None'
-            #     changes.append("License Plate: from '%s' to '%s'" % (old_license_plate, vals['license_plate']))
-            if 'vehicle_driver_id' in vals and vehicle.vehicle_driver_id.id != vals['vehicle_driver_id']:
-                vehicle.vehicle_driver_id.action_assign()
-            # if len(changes) > 0:
-            #     vehicle.message_post(body=", ".join(changes))
+            if not context.get('assignment', False):
+                if 'vehicle_driver_id' in vals:
+                    if vehicle.vehicle_driver_id:
+                        vehicle.vehicle_driver_id.action_unassign_vehicle()
 
-        # @todi what is the purpose here
-        vehicle_id = super(fleet_vehicle, self).write(vals)
-        return vehicle_id
+                    if vals.get('vehicle_driver_id', False):
+                        vehicle_driver_id = self.env['fleet.driver'].browse([vals.get('vehicle_driver_id')])
+                        if vehicle_driver_id:
+                            vehicle_driver_id.action_assign_vehicle(vehicle, 'primary')
+
+                if 'alt_vehicle_driver_id' in vals:
+                    if vehicle.alt_vehicle_driver_id:
+                        vehicle.alt_vehicle_driver_id.action_unassign_vehicle()
+
+                    if vals.get('alt_vehicle_driver_id', False):
+                        alt_vehicle_driver_id = self.env['fleet.driver'].browse([vals.get('alt_vehicle_driver_id')])
+                        if alt_vehicle_driver_id:
+                            alt_vehicle_driver_id.action_assign_vehicle(vehicle, 'secondary')
+        return super(fleet_vehicle, self).write(vals)
+
+    @api.model
+    def create(self, vals):
+        res = super(fleet_vehicle, self).create(vals)
+        if 'vehicle_driver_id' in vals:
+            if res.vehicle_driver_id:
+                res.vehicle_driver_id.action_unassign_vehicle()
+
+            if res.vehicle_driver_id:
+                res.vehicle_driver_id.action_assign_vehicle(res, 'primary')
+
+        if 'alt_vehicle_driver_id' in vals:
+            if res.alt_vehicle_driver_id:
+                res.alt_vehicle_driver_id.action_unassign_vehicle()
+
+            if res.alt_vehicle_driver_id:
+                res.alt_vehicle_driver_id.action_assign_vehicle(res, 'secondary')
+        return res
 
 
 class fleet_driver_assignment(models.Model):
@@ -289,7 +312,7 @@ class fleet_driver_assignment(models.Model):
     _order = 'date_start DESC, id DESC'
 
     vehicle_id = fields.Many2one(
-        'fleet.vehicle', 'Vehicle', requried=True,
+        'fleet.vehicle', 'Vehicle', required=True,
     )
     driver_id = fields.Many2one(
         'fleet.driver', 'Driver', required=True,
@@ -304,17 +327,48 @@ class fleet_driver_assignment(models.Model):
     odometer_end = fields.Float('Odometer at Finish', readonly=True)
     type = fields.Selection([('primary', 'Primary'), ('secondary', 'Secondary')], required=True, default='primary')
 
+    @api.multi
+    def write(self, vals):
+        for assignment in self:
+            if 'vehicle_id' in vals or 'driver_id' in vals or 'type' in vals:
+                vehicle_id = vals.get('vehicle_id', assignment.vehicle_id and assignment.vehicle_id.id or False)
+                driver_id = vals.get('driver_id', assignment.driver_id and assignment.driver_id.id or False)
+                type = vals.get('type', assignment.type)
+                vehicle_id = self.env['fleet.vehicle'].browse([vehicle_id])
+                if vehicle_id:
+                    if type == 'secondary':
+                        vehicle_id.with_context({'assignment': True}).write({
+                            'alt_vehicle_driver_id': driver_id,
+                        })
+                    else:
+                        vehicle_id.with_context({'assignment': True}).write({
+                            'vehicle_driver_id': driver_id,
+                        })
+            if vals.get('driver_id', False):
+                driver_id = self.env['fleet.driver'].browse([driver_id])
+                assignment.driver_id.write({'state': 'unassigned'})
+                driver_id.action_assign()
+            if vals.get('type', False):
+                driver_id = self.env['fleet.driver'].browse([driver_id])
+                assignment.driver_id.write({'state': 'unassigned'})
+                driver_id.action_assign()
+                driver_id.vehicle_id = vals.get('vehicle_id', assignment.vehicle_id and assignment.vehicle_id.id or False)
+        return super(fleet_driver_assignment, self).write(vals)
+
     @api.model
-    @api.returns('fleet.driver.assignment')
     def create(self, data):
         res = super(fleet_driver_assignment, self).create(data)
-        res.odometer_start = res.vehicle_id.odometer
+        res.odometer_start = res.vehicle_id and res.vehicle_id.odometer or 0.0
         vehicle_obj = self.env['fleet.vehicle'].browse(res.vehicle_id.id)
         if vehicle_obj:
             if not vehicle_obj.vehicle_driver_id and res.type == 'primary':
-                vehicle_obj.write({'vehicle_driver_id': res.driver_id.id})
+                vehicle_obj.with_context({'assignment': True}).write({'vehicle_driver_id': res.driver_id.id})
+                res.driver_id.action_assign()
+                res.driver_id.vehicle_id = res.vehicle_id.id or False
             if not vehicle_obj.alt_vehicle_driver_id and res.type == 'secondary':
-                vehicle_obj.write({'alt_vehicle_driver_id': res.driver_id.id})
+                vehicle_obj.with_context({'assignment': True}).write({'alt_vehicle_driver_id': res.driver_id.id})
+                res.driver_id.action_assign()
+                res.driver_id.vehicle_id = res.vehicle_id.id or False
         return res
 
     @api.one
@@ -343,6 +397,15 @@ class fleet_driver_assignment(models.Model):
         ]
         if self.search_count(domain):
             raise UserError('Vehicle is already assigned to another driver of this same type')
+
+        if self.vehicle_id:
+            if self.type == 'primary':
+                if self.vehicle_id.vehicle_driver_id:
+                    raise UserError('Vehicle is already assigned to another driver of this same type')
+
+            if self.type == 'secondary':
+                if self.vehicle_id.alt_vehicle_driver_id:
+                    raise UserError('Vehicle is already assigned to another driver of this same type')
 
 
 class fleet_vehicle_issue(models.Model):

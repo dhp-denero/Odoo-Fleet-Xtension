@@ -11,10 +11,10 @@
         'views/fleet_fuel.xml',
         'data/fleet_fuel_data.xml',
         'report/fuel_board_view.xml',
-        # 'views/fleet_fuel_report.xml',
+        'views/fleet_fuel_report.xml',
         'views/res_config_views.xml',
         'security/ir.model.access.csv',
-        # 'report/report_fuel_coupon.xml',
+        'report/report_fuel_coupon.xml',
     ],
     'installable': True
 

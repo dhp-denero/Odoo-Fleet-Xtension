@@ -11,8 +11,8 @@
                     <sheet>
                     <group>
                         <group>
-                            <field name="driver_id"/>
-                            <field name="vehicle_id"/>
+                            <field name="driver_id" options="{'no_create': True}"/>
+                            <field name="vehicle_id" options="{'no_create': True}"/>
                             <field name="type" required="1"/>
                         </group>
                         <group>
@@ -23,12 +23,12 @@
                                         <field name="date_end" nolabel="1" class="oe_inline"/>
                                 </div>
 
-                                <label for="odometer_start" string="Distance"/>
+                                <!-- <label for="odometer_start" string="Distance"/>
                                 <div>
                                     <field name="odometer_start" nolabel="1" class="oe_inline"/>
                                     <label string="-" class="oe_inline"/>
                                     <field name="odometer_end" nolabel="1" class="oe_inline"/>
-                                </div>
+                                </div> -->
                         </group>
                         </group>
                     </sheet>
@@ -131,7 +131,7 @@
                         </h1>   
                         <label for="vehicle_id"/>
                         <h4>
-                            <field name="vehicle_id" />
+                            <field name="vehicle_id" options="{'no_create': True}"/>
                         </h4>
                         <field name="identification_no" placeholder="Indentification #..."/>                   
                         <field name="category_id" widget="many2many_tags" placeholder="Tags..."/>
@@ -319,8 +319,8 @@
             
             <field name="driver_id" position="replace">
                 <field name="driver_id" invisible="1"/>
-                <field name="vehicle_driver_id" />
-                <field name="alt_vehicle_driver_id" />
+                <field name="vehicle_driver_id" options="{'no_create': True}"/>
+                <field name="alt_vehicle_driver_id" options="{'no_create': True}"/>
             </field>
             
             
@@ -359,7 +359,7 @@
         <field name="inherit_id" ref="fleet_x_issue.fleet_vehicle_issue_form" />
         <field name="arch" type="xml">
             <field name="vehicle_id" position="after">
-                <field name="driver_id"/>
+                <field name="driver_id" options="{'no_create': True}"/>
             </field>
         </field>
     </record>
