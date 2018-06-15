@@ -349,7 +349,20 @@ class fleet_driver_assignment(models.Model):
                 assignment.driver_id.write({'state': 'unassigned'})
                 driver_id.action_assign()
             if vals.get('type', False):
-                driver_id = self.env['fleet.driver'].browse([driver_id])
+                vehicle_id = vals.get('vehicle_id', assignment.vehicle_id and assignment.vehicle_id.id or False)
+                driver_id = vals.get('driver_id', assignment.driver_id and assignment.driver_id.id or False)
+                if driver_id:
+                    driver_id = self.env['fleet.driver'].browse([driver_id])
+                if vehicle_id:
+                    vehicle_id = self.env['fleet.vehicle'].browse([vehicle_id])
+                    if vals.get('type') == 'primary':
+                        if vehicle_id.vehicle_driver_id:
+                            raise UserError('Vehicle is already assigned to another driver of this same type')
+
+                    if vals.get('type') == 'secondary':
+                        if vehicle_id.alt_vehicle_driver_id:
+                            raise UserError('Vehicle is already assigned to another driver of this same type')
+
                 assignment.driver_id.write({'state': 'unassigned'})
                 driver_id.action_assign()
                 driver_id.vehicle_id = vals.get('vehicle_id', assignment.vehicle_id and assignment.vehicle_id.id or False)
@@ -397,15 +410,6 @@ class fleet_driver_assignment(models.Model):
         ]
         if self.search_count(domain):
             raise UserError('Vehicle is already assigned to another driver of this same type')
-
-        if self.vehicle_id:
-            if self.type == 'primary':
-                if self.vehicle_id.vehicle_driver_id:
-                    raise UserError('Vehicle is already assigned to another driver of this same type')
-
-            if self.type == 'secondary':
-                if self.vehicle_id.alt_vehicle_driver_id:
-                    raise UserError('Vehicle is already assigned to another driver of this same type')
 
 
 class fleet_vehicle_issue(models.Model):
