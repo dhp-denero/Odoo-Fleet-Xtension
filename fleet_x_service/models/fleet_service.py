@@ -298,7 +298,7 @@ class fleet_service_maintenance(models.Model):
     _inherit = ['ir.needaction_mixin', 'mail.thread']
     _name = "fleet.service.maintenance"
     _rec_name = 'vehicle_id'
-    _description = 'Service Maintenance'
+    _description = 'Maintenance Plan'
 
     desc = fields.Text('Description', required=True,)
     service_type = fields.Many2one(
