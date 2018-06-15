@@ -160,6 +160,15 @@
             <field name="search_view_id" ref="view_fleet_service_schedule_filter" />
         </record>
 
+        <record id="action_open_vehicle_fleet_service_schedules" model="ir.actions.act_window">
+            <field name="name">Scheduled Services</field>
+            <field name="res_model">fleet.service.schedule</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form,calendar</field>
+            <field name="context">{"search_default_needaction":1}</field>
+            <field name="search_view_id" ref="view_fleet_service_schedule_filter" />
+        </record>
+
         <menuitem id="menu_fleet_service_schedule" action="open_fleet_service_schedules"
             groups="fleet.fleet_group_user" parent="fleet_services" sequence="15" />
 
@@ -249,7 +258,7 @@
                 </page>
 
                 <button name="action_get_attachment_tree_view" position="before">
-                    <button name="%(open_fleet_service_schedules)d"
+                    <button name="%(action_open_vehicle_fleet_service_schedules)d"
                         context="{'search_default_vehicle_id': [active_id],'default_vehicle_id': active_id}"
                         type="action" class="oe_stat_button" icon="fa-exclamation-triangle">
                         <field name="schedule_count" widget="statinfo" string="Scheduled" />

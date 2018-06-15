@@ -205,11 +205,12 @@ class fleet_vehicle(models.Model):
     )
 
 
-    @api.one
+    @api.multi
     @api.depends('log_services', 'log_services.vehicle_id', 'log_services.date')
     def _compute_last_service(self):
-        logs = self.log_services.sorted(key=operator.itemgetter('date', 'odometer', 'id'))
-        self.last_service_id = logs and logs[-1] or False
+        for rec in self:
+            logs = rec.log_services.sorted(key=operator.itemgetter('date', 'odometer', 'id'))
+            rec.last_service_id = logs and logs[-1] or False
 
     @api.one
     @api.depends(
@@ -226,11 +227,15 @@ class fleet_vehicle(models.Model):
         self.next_service_date = fields.Date.to_string(next_dt)
         self.next_service_odometer = last_odometer + self.repair_scheduling_odometer
 
-    @api.one
-    @api.depends('schedule_ids')
+    @api.multi
     def _get_schedule_count(self):
-        x = len(self.schedule_ids.filtered((lambda r: r.state in ('open', 'overdue'))))
-        self.schedule_count = len(self.schedule_ids.filtered((lambda r: r.state in ('open', 'overdue'))))
+        for rec in self:
+            rec.schedule_count = rec.env['fleet.service.schedule'].search_count(
+                [
+                    ('vehicle_id', '=', rec.id),
+                    ('state', 'in', ['open','overdue'])
+                ]
+            )
 
     @api.model
     def _cron_schedule_repairs(self):
