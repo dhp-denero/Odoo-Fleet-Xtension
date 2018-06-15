@@ -123,8 +123,10 @@
                             <group>
                                 <field name="name" />
                                 <field name="vehicle_id" options="{'no_create': True}" />
+                                <field name="maintenance_id" options="{'no_create': True}" readonly="1"/>
                                 <field name="service_log_id" />
                                 <field name="auto_generated" />
+
                             </group>
                             <group>
 
@@ -229,6 +231,22 @@
                         </group>
                     </group>
                 </page>
+                <page name="fuel_policies" position="after">
+                    <page name="service_maintenance" string="Service Maintenance">
+                        <field name="service_maintenance_ids" context="{'default_odometer_unit': odometer_unit}">
+                            <tree editable="top">
+                                <field name="service_type" options="{'no_create': True}"
+                                    attrs="{'readonly': [('schedule_id', '!=', False)]}"/>
+                                <field name="desc" attrs="{'readonly': [('schedule_id', '!=', False)]}"/>
+                                <field name="odometer" attrs="{'readonly': [('schedule_id', '!=', False)]}"/>
+                                <field name="maintenance_date" invisible="1"/>
+                                <field name="odometer_unit" invisible="1"/>
+                                <field name="schedule_id" />
+                                <field name="state" />
+                            </tree>
+                        </field>
+                    </page>
+                </page>
 
                 <button name="action_get_attachment_tree_view" position="before">
                     <button name="%(open_fleet_service_schedules)d"
@@ -252,7 +270,43 @@
             </field>
         </record>
 
+        <record id="fleet_service_maintenance_form" model="ir.ui.view">
+            <field name="name">fleet.service.maintenance.form</field>
+            <field name="model">fleet.service.maintenance</field>
+            <field name="arch" type="xml">
+                <form string="Services Maintenance">
+                    <header>
+                        <field name="state" widget="statusbar" />
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="vehicle_id" options="{'no_create': True}" />
+                                <field name="maintenance_date"/>
+                            </group>
+                            <group>
+                                <label for="odometer"/>
+                                <div class="o_row">
+                                    <field name="odometer"/>
+                                    <field name="odometer_unit" required="1"/>
+                                </div>
+                                <field name="service_type"/>
+                            </group>
 
+                        </group>
+                        <notebook>
+                            <page string="Description">
+                                <field name="desc" placeholder="Description" />
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers" />
+                        <field name="message_ids" widget="mail_thread" />
+                    </div>
+                </form>
+            </field>
+        </record>
 
 
     </data>

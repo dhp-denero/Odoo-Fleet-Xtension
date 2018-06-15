@@ -1,3 +1,5 @@
 "id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
-"access_fleet_x_service_sch_schedule","fleet_service_schedule_user","model_fleet_service_schedule","fleet.fleet_group_user",1,0,0,0
+"access_fleet_x_service_sch_schedule_user","fleet_service_schedule_user","model_fleet_service_schedule","fleet.fleet_group_user",1,0,0,0
 "access_fleet_x_service_sch_schedule","fleet_service_schedule_manager","model_fleet_service_schedule","fleet.fleet_group_manager",1,1,1,1
+"access_fleet_x_service_maintenance_user","fleet_service_maintenance_user","model_fleet_service_maintenance","fleet.fleet_group_user",1,0,0,0
+"access_fleet_x_service_maintenance","fleet_service_maintenance_manager","model_fleet_service_maintenance","fleet.fleet_group_manager",1,1,1,1

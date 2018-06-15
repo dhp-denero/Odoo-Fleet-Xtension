@@ -68,6 +68,7 @@ class fleet_service_schedule(models.Model):
     note = fields.Text('Description')
     auto_generated = fields.Boolean()
     cost_subtype_id = fields.Many2one('fleet.service.type', 'Service Type', required=True)
+    maintenance_id = fields.Many2one('fleet.service.maintenance', 'Maintenance',)
 
     @api.one
     @api.constrains('date_deadline', 'date')
@@ -199,6 +200,10 @@ class fleet_vehicle(models.Model):
                                                 default=_get_default_scheduling_odometer)
     schedule_ids = fields.Many2one('fleet.service.schedule', 'schedules', domain=[('state', '=', 'open')])
     schedule_count = fields.Integer('schedule Count', readonly=True, compute="_get_schedule_count")
+    service_maintenance_ids = fields.One2many(
+        'fleet.service.maintenance', 'vehicle_id', 'Service Maintenance'
+    )
+
 
     @api.one
     @api.depends('log_services', 'log_services.vehicle_id', 'log_services.date')
@@ -282,3 +287,69 @@ class fleet_vehicle_log_services(models.Model):
     def create(self, data):
         data['name'] = self.env['ir.sequence'].next_by_code('fleet.service.log.ref')
         return super(fleet_vehicle_log_services, self).create(data)
+
+
+class fleet_service_maintenance(models.Model):
+    _inherit = ['ir.needaction_mixin', 'mail.thread']
+    _name = "fleet.service.maintenance"
+    _rec_name = 'vehicle_id'
+    _description = 'Service Maintenance'
+
+    desc = fields.Text('Description', required=True,)
+    service_type = fields.Many2one(
+        'fleet.service.type', 'Service Type', required=True,
+    )
+    odometer = fields.Float('Odometer', required=True)
+    vehicle_id = fields.Many2one(
+        'fleet.vehicle', 'Vehicle', required=True,
+    )
+    maintenance_date = fields.Datetime('Maintenance Date',
+        required=True, default=fields.Date.today()
+    )
+    odometer_unit = fields.Selection(
+        [('kilometers', 'Kilometers'), ('miles', 'Miles')],
+        'Odometer Unit', default='kilometers', help='Unit of the odometer ',
+        required=True
+    )
+    schedule_id = fields.Many2one(
+        'fleet.service.schedule', string="Service Schedule", readonly=True
+    )
+    state = fields.Selection(related='schedule_id.state', string="State", readonly=True)
+
+    @api.model
+    def _cron_schedule_service_maintenance(self):
+        service_obj = self.env['fleet.vehicle.log.services']
+        res_ids = []
+        maintenance_ids =  self.search([])
+        for maintenance in maintenance_ids.filtered(lambda r: r.vehicle_id):
+            if maintenance.odometer >= maintenance.vehicle_id.next_service_odometer:
+                res_ids.append(maintenance)
+        if res_ids:
+            for maintenance in res_ids:
+                maintenance.schedule_services()
+        return True
+
+    @api.multi
+    def schedule_services(self):
+        schedule_obj = self.env['fleet.service.schedule']
+        for maintenance in self:
+            # let's first see if we have an outstanding
+            if schedule_obj.search_count([
+                ('state', 'in', ('open',  'overdue')),
+                ('maintenance_id', '=', maintenance.id),
+            ]):
+                continue
+            schedule_id = schedule_obj.create({
+                'maintenance_id': maintenance.id,
+                'vehicle_id': maintenance.vehicle_id.id,
+                'auto_generated': True,
+                'note': maintenance.desc or '',
+                'cost_subtype_id': maintenance.service_type.id,
+            })
+            maintenance.schedule_id = schedule_id and schedule_id.id or False
+        return True
+
+    @api.onchange('service_type')
+    def onchange_service_type(self):
+        if self.service_type and not self.desc:
+            self.desc = self.service_type.display_name
