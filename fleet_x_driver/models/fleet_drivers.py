@@ -347,7 +347,7 @@ class fleet_driver_assignment(models.Model):
                         })
                     else:
                         vehicle_id.with_context({'assignment': True}).write({
-                            'vehicle_driver_id': driver_id,
+                            'vehicle_driver_id': driver_id and driver_id.id or False,
                         })
                         assignment.vehicle_id.with_context({'assignment': True}).write({
                             'vehicle_driver_id': False,
@@ -392,10 +392,27 @@ class fleet_driver_assignment(models.Model):
                     if vals.get('type') == 'primary':
                         if vehicle_id.vehicle_driver_id:
                             raise UserError('Vehicle is already assigned to another driver of this same type')
-
+                        else:
+                            assignment.vehicle_id.with_context({'assignment': True}).write({
+                                'vehicle_driver_id': driver_id and driver_id.id or False,
+                            })
                     if vals.get('type') == 'secondary':
                         if vehicle_id.alt_vehicle_driver_id:
                             raise UserError('Vehicle is already assigned to another driver of this same type')
+                        else:
+                            assignment.vehicle_id.with_context({'assignment': True}).write({
+                                'alt_vehicle_driver_id': driver_id and driver_id.id or False,
+                            })
+                if vehicle_id:
+                    if vals.get('type') == 'secondary':
+                        assignment.vehicle_id.with_context({'assignment': True}).write({
+                            'alt_vehicle_driver_id': driver_id and driver_id.id or False,
+                        })
+
+                    else:
+                        vehicle_id.with_context({'assignment': True}).write({
+                            'vehicle_driver_id': driver_id and driver_id.id or False,
+                        })
 
                 assignment.driver_id.write({'state': 'unassigned'})
                 driver_id.action_assign()
