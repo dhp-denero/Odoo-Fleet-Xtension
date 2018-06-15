@@ -330,22 +330,33 @@ class fleet_driver_assignment(models.Model):
     @api.multi
     def write(self, vals):
         for assignment in self:
-            if 'vehicle_id' in vals or 'driver_id' in vals or 'type' in vals:
-                vehicle_id = vals.get('vehicle_id', assignment.vehicle_id and assignment.vehicle_id.id or False)
-                driver_id = vals.get('driver_id', assignment.driver_id and assignment.driver_id.id or False)
+            if vals.get('vehicle_id', False):
+                vehicle_id = vals.get('vehicle_id')
+                driver_id = assignment.driver_id and assignment.driver_id.id or False
+                if driver_id:
+                    driver_id = self.env['fleet.driver'].browse([driver_id])
                 type = vals.get('type', assignment.type)
                 vehicle_id = self.env['fleet.vehicle'].browse([vehicle_id])
                 if vehicle_id:
                     if type == 'secondary':
                         vehicle_id.with_context({'assignment': True}).write({
-                            'alt_vehicle_driver_id': driver_id,
+                            'alt_vehicle_driver_id': driver_id and driver_id.id or False,
+                        })
+                        assignment.vehicle_id.with_context({'assignment': True}).write({
+                            'alt_vehicle_driver_id': False,
                         })
                     else:
                         vehicle_id.with_context({'assignment': True}).write({
                             'vehicle_driver_id': driver_id,
                         })
+                        assignment.vehicle_id.with_context({'assignment': True}).write({
+                            'vehicle_driver_id': False,
+                        })
+                if driver_id:
+                    driver_id.vehicle_id = vals.get('vehicle_id', assignment.vehicle_id and assignment.vehicle_id.id or False)
             if vals.get('driver_id', False):
                 driver_id = vals.get('driver_id', assignment.driver_id and assignment.driver_id.id or False)
+                vehicle_id = assignment.vehicle_id and assignment.vehicle_id.id or False
                 if driver_id:
                     driver_id = self.env['fleet.driver'].browse([driver_id])
                 if vehicle_id:
@@ -358,6 +369,15 @@ class fleet_driver_assignment(models.Model):
                         if vehicle_id.alt_vehicle_driver_id:
                             raise UserError('Vehicle is already assigned to another driver of this same type')
 
+                if vehicle_id:
+                    if assignment.type == 'secondary':
+                        vehicle_id.with_context({'assignment': True}).write({
+                            'alt_vehicle_driver_id': driver_id and driver_id.id or False,
+                        })
+                    else:
+                        vehicle_id.with_context({'assignment': True}).write({
+                            'vehicle_driver_id': driver_id and driver_id.id or False,
+                        })
                 assignment.driver_id.write({'state': 'unassigned'})
                 assignment.driver_id.vehicle_id = False
                 driver_id.action_assign()
@@ -424,6 +444,21 @@ class fleet_driver_assignment(models.Model):
         ]
         if self.search_count(domain):
             raise UserError('Vehicle is already assigned to another driver of this same type')
+
+    @api.multi
+    def unlink(self):
+        for rec in self:
+            rec.driver_id.write({'state': 'unassigned'})
+            rec.driver_id.vehicle_id = False
+            if rec.type == 'secondary':
+                rec.vehicle_id.with_context({'assignment': True}).write({
+                    'alt_vehicle_driver_id': False,
+                })
+            else:
+                rec.vehicle_id.with_context({'assignment': True}).write({
+                    'vehicle_driver_id': False,
+                })
+        return super(fleet_driver_assignment, self).unlink()
 
 
 class fleet_vehicle_issue(models.Model):
