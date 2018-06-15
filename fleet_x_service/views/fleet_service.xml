@@ -241,7 +241,7 @@
                     </group>
                 </page>
                 <page name="fuel_policies" position="after">
-                    <page name="service_maintenance" string="Service Maintenance">
+                    <page name="service_maintenance" string="Maintenance Plan">
                         <field name="service_maintenance_ids" context="{'default_odometer_unit': odometer_unit}">
                             <tree editable="top">
                                 <field name="service_type" options="{'no_create': True}"
@@ -283,7 +283,7 @@
             <field name="name">fleet.service.maintenance.form</field>
             <field name="model">fleet.service.maintenance</field>
             <field name="arch" type="xml">
-                <form string="Services Maintenance">
+                <form string="Maintenance Plan">
                     <header>
                         <field name="state" widget="statusbar" />
                     </header>
