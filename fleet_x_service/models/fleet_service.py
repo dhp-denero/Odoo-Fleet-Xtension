@@ -233,7 +233,7 @@ class fleet_vehicle(models.Model):
             rec.schedule_count = rec.env['fleet.service.schedule'].search_count(
                 [
                     ('vehicle_id', '=', rec.id),
-                    ('state', 'in', ['open','overdue'])
+                    ('state', 'in', ['open', 'overdue'])
                 ]
             )
 
