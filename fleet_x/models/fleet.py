@@ -165,7 +165,7 @@ class fleet_vehicle(models.Model):
     )
 
     # statistics
-    lmiles = fields.Float('Miles per year', compute="_compute_vehicle_stats",
+    lmiles = fields.Float('Kilometers per year', compute="_compute_vehicle_stats",
                           readonly=True, store=True)
     distance = fields.Float('Distance covered since purchase',
                             compute="_compute_vehicle_stats", readonly=True, store=True)
@@ -191,66 +191,70 @@ class fleet_vehicle(models.Model):
         ('uniq_vin', 'unique(vin_sn)', 'The Chassis # of the vehicle must be unique !')
     ]
 
-    @api.one
+    @api.multi
     def _get_odometer_date(self):
         # date of last odometer reading
-        if len(self.odometer_ids):
-            self.odometer_date = self.odometer_ids.sorted(lambda r: r.value)[-1].date
+        for rec in self:
+            if len(rec.odometer_ids):
+                rec.odometer_date = rec.odometer_ids.sorted(lambda r: r.value)[-1].date
 
-    @api.one
+    @api.multi
     @api.depends('acquisition_date', 'podometer', 'odometer', 'odometer_ids', 'cost_ids', 'cost_ids.amount')
     def _compute_vehicle_stats(self):
-        if not isinstance(self.id, int):
-            return
-        costpm = 0.0
-        costpmon = 0.0
-        costtotal = 0.0
-        if not len(self.odometer_ids):
-            return
-        odoo_delta = self.odometer - self.odometer_ids.sorted(lambda r: r.value)[0].value
-        if odoo_delta <= 0:
-            return
-        self.distance = odoo_delta
-        if not len(self.cost_ids) or not self.acquisition_date:
-            return
+        for rec in self:
+            if not isinstance(rec.id, int):
+                return
+            costpm = 0.0
+            costpmon = 0.0
+            costtotal = 0.0
+            if not len(rec.odometer_ids):
+                return
+            # odoo_delta = rec.odometer - rec.odometer_ids.sorted(lambda r: r.value)[0].value
+            odoo_delta = rec.odometer - rec.podometer
+            if odoo_delta <= 0:
+                return
+            rec.distance = odoo_delta
+            if not len(rec.cost_ids) or not rec.acquisition_date:
+                return
 
-        time_delta = relativedelta(datetime.now(), fields.Date.from_string(self.acquisition_date))
-        # distance traveled since the first odometer was logged
+            time_delta = relativedelta(datetime.now(), fields.Date.from_string(rec.acquisition_date))
+            # distance traveled since the first odometer was logged
 
-        for cost in self.cost_ids:
-            costtotal += cost.amount
+            for cost in rec.cost_ids:
+                costtotal += cost.amount
 
-        months = (time_delta.years * 12) + time_delta.months
-        costpmon = months and costtotal / months or costtotal
-        costpm = costtotal / odoo_delta
+            months = (time_delta.years * 12) + time_delta.months
+            costpmon = months and costtotal / months or costtotal
+            costpm = costtotal / odoo_delta
 
-        self.costpm = costpm
-        self.costpmon = costpmon
-        self.costtotal = costtotal
-        self.lmiles = (time_delta.years > 1) and odoo_delta / time_delta.years or odoo_delta
+            rec.costpm = costpm
+            rec.costpmon = costpmon
+            rec.costtotal = costtotal
+            rec.lmiles = (time_delta.years > 1) and odoo_delta / time_delta.years or odoo_delta
 
-    @api.one
+    @api.multi
     def _set_odometer_at_purchase(self):
-        if not len(self.odometer_ids):
-            self.env['fleet.vehicle.odometer'].create({
-                'value': self.podometer,
-                'vehicle_id': self.id,
-                'date':  self.acquisition_date
-            })
-        else:
-            first = self.odometer_ids[-1]
-            first_dt = fields.Date.from_string(first.date)
-            acquisition_dt = fields.Date.from_string(self.acquisition_date)
-            if first_dt <= acquisition_dt:
-                first.write({
-                    'value': self.podometer,
-                    'date': self.acquisition_date})
-            else:
+        for rec in self:
+            if not len(rec.odometer_ids):
                 self.env['fleet.vehicle.odometer'].create({
-                    'value': self.podometer,
-                    'vehicle_id': self.id,
-                    'date':  self.acquisition_date
+                    'value': rec.podometer,
+                    'vehicle_id': rec.id,
+                    'date':  rec.acquisition_date
                 })
+            else:
+                first = rec.odometer_ids[-1]
+                first_dt = fields.Date.from_string(first.date)
+                acquisition_dt = fields.Date.from_string(rec.acquisition_date)
+                if first_dt <= acquisition_dt:
+                    first.write({
+                        'value': rec.podometer,
+                        'date': rec.acquisition_date})
+                else:
+                    self.env['fleet.vehicle.odometer'].create({
+                        'value': rec.podometer,
+                        'vehicle_id': rec.id,
+                        'date':  rec.acquisition_date
+                    })
 
     @api.one
     def _get_attachment_number(self):

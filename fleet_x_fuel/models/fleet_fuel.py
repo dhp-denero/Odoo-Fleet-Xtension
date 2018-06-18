@@ -291,7 +291,7 @@ class fleet_vehicle_log_fuel(models.Model):
     coupon_id = fields.Many2one('fleet.fuel.coupon', 'Coupon', domain=[('state', '=', 'active')], ondelete='cascade')
     vendor_id = fields.Many2one('res.partner', 'Supplier', domain="[('supplier','=',True)]")
     price_per_liter = fields.Float('Price Per Liter', default=_get_default_price)
-
+    current_odometer = fields.Float('Current Odometer Value', readonly=True, related="vehicle_id.odometer", store=True)
     right_id = fields.Many2one('fleet.vehicle.log.fuel', 'Next Fuel Log', readonly=True)
     end_odometer = fields.Float('End Odometer', readonly=True, related="right_id.odometer", store=True)
     odometer_delta = fields.Float('Distance Traveled', readonly=True, compute='_get_consumption_stats', store=True)
@@ -303,13 +303,13 @@ class fleet_vehicle_log_fuel(models.Model):
     _sql_constraints = [('fleet_fuel_right_id_unique', 'unique(right_id)', 'Next fuel log in fuel log chain should be unique')]
 
     @api.multi
-    @api.depends('right_id')
+    @api.depends('right_id', 'odometer')
     def _get_consumption_stats(self):
         for rec in self:
             if not isinstance(rec.id, (int)) or not rec.liter:
                 return
             if rec.end_odometer:
-                rec.odometer_delta = rec.end_odometer - rec.odometer
+                rec.odometer_delta = rec.end_odometer - rec.current_odometer
             else:
                 # we use the current vehicle odometer stats then
                 rec.odometer_delta = rec.vehicle_id.odometer - rec.odometer

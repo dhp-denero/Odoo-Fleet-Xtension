@@ -204,7 +204,6 @@ class fleet_vehicle(models.Model):
         'fleet.service.maintenance', 'vehicle_id', 'Service Maintenance'
     )
 
-
     @api.multi
     @api.depends('log_services', 'log_services.vehicle_id', 'log_services.date')
     def _compute_last_service(self):
@@ -212,7 +211,7 @@ class fleet_vehicle(models.Model):
             logs = rec.log_services.sorted(key=operator.itemgetter('date', 'odometer', 'id'))
             rec.last_service_id = logs and logs[-1] or False
 
-    @api.one
+    @api.multi
     @api.depends(
         'last_service_id',
         'log_services',
@@ -221,11 +220,12 @@ class fleet_vehicle(models.Model):
         'last_service_odometer'
     )
     def _compute_next_service_details(self):
-        last_date = self.last_service_date and fields.Date.from_string(self.last_service_date) or date.today()
-        last_odometer = self.last_service_odometer or self.odometer
-        next_dt = last_date + relativedelta(months=self.repair_scheduling_time)
-        self.next_service_date = fields.Date.to_string(next_dt)
-        self.next_service_odometer = last_odometer + self.repair_scheduling_odometer
+        for rec in self:
+            last_date = rec.last_service_date and fields.Date.from_string(rec.last_service_date) or date.today()
+            last_odometer = rec.last_service_odometer or rec.odometer
+            next_dt = last_date + relativedelta(months=rec.repair_scheduling_time)
+            rec.next_service_date = fields.Date.to_string(next_dt)
+            rec.next_service_odometer = last_odometer + rec.repair_scheduling_odometer
 
     @api.multi
     def _get_schedule_count(self):

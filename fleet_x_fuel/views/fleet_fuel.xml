@@ -207,6 +207,13 @@
                 <field name="vehicle_id" position="after">
                     <field name="coupon_id" />
                 </field>
+                <xpath expr="//div[@class='o_row']" position="after">
+                    <label for="current_odometer"/>
+                    <div class="o_row">
+                        <field name="current_odometer"/>
+                    </div>
+                </xpath>
+
                 <field name="odometer" position="replace">
                     <field name="odometer" class="oe_inline" required="1" />
                 </field>

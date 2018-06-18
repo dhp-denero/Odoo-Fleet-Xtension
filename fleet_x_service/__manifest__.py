@@ -5,7 +5,7 @@
     'author': "Salton Massally<smassally@idtlabs.sl>, DeneroTeam <dhaval@deneroteam.com>",
     'website': "https://idtlabs.sl",
     'category': 'Managing vehicles and contracts',
-    'version': '10.0.2018.06.15.1',
+    'version': '10.0.2018.06.18.1',
     'depends': ['fleet_x'],
     'data': [
         'views/fleet_service.xml',
