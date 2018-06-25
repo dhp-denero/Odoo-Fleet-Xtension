@@ -17,14 +17,21 @@
                             groups="fleet.fleet_group_manager" string="Confirm" class="oe_highlight" />
                         <!-- <button name="action_print" type="object" states="active"
                             groups="fleet.fleet_group_user" string="Print Coupon" class="oe_highlight" /> -->
-                        <button name="action_log_fuel" type="object" states="active"
+                        <button name="action_log_fuel" type="object"
                             groups="fleet.fleet_group_user" string="Log Fuel Collected"
-                            class="oe_highlight" />
+                            class="oe_highlight"
+                            attrs="{'invisible': [
+                                ('amount_remaining', '=', 0),
+                                ('state', '!=', 'active')
+                            ]}" 
+                        />
                         <button name="action_cancel" type="object" states="draft,active"
                             groups="fleet.fleet_group_manager" string="Cancel" />
-                        <button name="action_reset" type="object" states="done,cancel,expired"
-                            groups="fleet.fleet_group_manager" string="Set to Draft" />
-                        <field name="state" widget="statusbar" statusbar_visible="draft,active,done" />
+                        <button name="action_reset" type="object" states="expired"
+                            groups="fleet.fleet_group_manager" string="Set to Spare" />
+                        <field name="state" widget="statusbar"
+                            statusbar_visible="draft,active,expired,cancel"
+                            clickable="True"/>
                     </header>
                     <sheet>
                         <div class="oe_title">
@@ -40,16 +47,22 @@
                         </div>
                         <group>
                             <group>
+                                <field name="driver_id" readonly="1" invisible="1"/>
+                                <field name="card_number" />
                                 <field name="code" groups="fleet.fleet_group_manager" />
                                 <field name="fuel_type" attrs="{'readonly': [('state','!=', 'draft')]}" />
                                 <field name="odometer" attrs="{'readonly': [('state','!=', 'draft')]}" />
-                                <field name="amount" attrs="{'readonly': [('state','!=', 'draft')]}" />
-                                <field name="amount_remaining" />
-                                <field name="auto_generated" />
+                                <field name="amount"
+                                    string="Daily Limit Liter"
+                                    attrs="{'readonly': [('state','!=', 'draft')]}"
+                                />
+                                <field name="daily_limit_amount" />
+                                <field name="amount_remaining" invisible="1"/>
+                                <field name="auto_generated" invisible="1"/>
                             </group>
                             <group>
                                 <field name="issued_on" attrs="{'readonly': [('state','!=', 'draft')]}" />
-                                <label for="valid_from" string="Validity" />
+                                <label for="valid_from" string="Expiry Date" />
                                 <div>
                                         <field name="valid_from" nolabel="1" class="oe_inline"
                                             attrs="{'readonly': [('state','!=', 'draft')]}" />
@@ -59,6 +72,7 @@
                                 </div>
                                 <field name="delivered_on" />
                                 <field name="vendor_id" attrs="{'readonly': [('state','!=', 'draft')]}" />
+                                <field name="fuel_card_location"/>
                             </group>
                         </group>
                         <notebook>
@@ -71,9 +85,9 @@
                                     <group string="Efficiency" cols='2'>
                                         <field name="stat_distance_delta" />
                                         <field name="stat_efficiency" />
-                                        <field name="stat_average_efficiency" />
+                                        <field name="stat_average_efficiency" invisible="1" />
                                     </group>
-                                    <group string="Efficiency" cols='2'>
+                                    <group string="Efficiency" cols='2' invisible="1" >
                                         <field name="stat_last_coupon_id" />
                                         <field name="stat_last_coupon_state" />
                                         <field name="stat_last_coupon_amount_remaining" />
@@ -83,6 +97,35 @@
                             </page>
                             <page string="Fuel Logs">
                                 <field name="log_fuel" />
+                            </page>
+                            <page string="Purchases" >
+                                <field name="vehicle_cost_ids"
+                                    context="{
+                                        'default_vehicle_id': vehicle_id,
+                                        'default_fuel_coupon_id': active_id}"
+                                        attrs="{'readonly': [('state','not in', ('draft', 'active'))]}" >
+                                    <tree string="Purchase">
+                                        <field name="vehicle_id"/>
+                                        <field name="cost_subtype_id"/>
+                                        <field name="date"/>
+                                        <field name="amount"/>
+                                    </tree>
+                                    <form string="Purchase">
+                                        <sheet>
+                                            <group col="2" >
+                                                <group>
+                                                    <field name="vehicle_id"/>
+                                                    <field name="cost_subtype_id"/>
+                                                    <field name="amount"/>
+                                                </group>
+                                                <group>
+                                                    <field name="date"/>
+                                                    <field name="fuel_coupon_id" readonly="1"/>
+                                                </group>
+                                            </group>
+                                        </sheet>
+                                    </form>
+                                </field>
                             </page>
                             <page string="Note">
                                 <field name="note" />
@@ -103,10 +146,12 @@
                 <tree string="Fuel Coupon">
                     <field name="name" />
                     <field name="vehicle_id" />
-                    <field name="valid_from" />
-                    <field name="valid_to" />
+                    <field name="driver_id" />
+                    <field name="valid_from" invisible="1" />
+                    <field name="valid_to" string="Expiry Date" />
                     <field name="amount" />
-                    <field name="amount_remaining" />
+                    <field name="fuel_card_location"/>
+                    <field name="amount_remaining" invisible="1" />
                     <field name="state" />
                 </tree>
             </field>
@@ -160,6 +205,17 @@
         <menuitem action="open_fleet_fuel_coupon" id="menu_fleet_fuel_coupon"
             parent="fleet.fleet_fuel" sequence="1" groups="fleet.fleet_group_user" />
 
+        <record model='ir.ui.view' id='fleet_vehicle_costs_form_view_from_fuel_coupon'>
+            <field name="name">fleet.vehicle.cost.form.from.fuel.coupon</field>
+            <field name="model">fleet.vehicle.cost</field>
+            <field name="inherit_id" ref="fleet.fleet_vehicle_costs_view_form" />
+            <field name="arch" type="xml">
+                <field name="parent_id" position="after">
+                    <field name="vehicle_fuel_log_id" readonly="1" />
+                    <field name="fuel_coupon_id" readonly="0" />
+                </field>
+            </field>
+        </record>
 
         <record id="fleet_x_fuel_vehicle_form" model="ir.ui.view">
             <field name="name">fleet.vehicle.form.inherit</field>
@@ -213,6 +269,9 @@
                         <field name="current_odometer"/>
                     </div>
                 </xpath>
+                <label for="odometer" position="attributes">
+                    <attribute name="string">Current Odometer</attribute>
+                </label>
 
                 <field name="odometer" position="replace">
                     <field name="odometer" class="oe_inline" required="1" />
@@ -225,7 +284,7 @@
                 <xpath expr="//sheet/group[last()]" position="after">
                     <group string="Statistics">
                         <group string="">
-                            <field name="end_odometer" />
+                            <field name="end_odometer" invisible="1"/>
                             <field name="odometer_delta" />
                             <field name="efficiency" />
                             <field name="efficiency_alert"

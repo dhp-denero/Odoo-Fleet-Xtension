@@ -28,7 +28,7 @@
                             <td><span t-field="o.fuel_type"/></td>
                         </tr>
                         <tr>
-                            <td><strong>Validation Code</strong></td>
+                            <td><strong>PIN</strong></td>
                             <td><span t-field="o.code"/></td>
                             <td><strong>Vendor</strong></td>
                             <td><span t-field="o.vendor_id"/></td>

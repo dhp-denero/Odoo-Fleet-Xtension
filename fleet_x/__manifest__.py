@@ -6,7 +6,7 @@
     'website': "http://idtlabs.sl",
     'category': 'Managing vehicles and contracts',
     'version': '10.0.2018.06.18.1',
-    'depends': ['fleet', 'board'],
+    'depends': ['fleet', 'board', 'document'],
     'data': [
         'data/fleet_data.xml',
         'security/ir.model.access.csv',
