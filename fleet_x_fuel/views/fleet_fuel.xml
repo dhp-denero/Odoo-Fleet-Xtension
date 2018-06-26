@@ -13,66 +13,76 @@
             <field name="arch" type="xml">
                 <form string="Fuel Coupon">
                     <header>
-                        <button name="action_confirm" type="object" states="draft"
-                            groups="fleet.fleet_group_manager" string="Confirm" class="oe_highlight" />
+                        <!-- <button name="action_confirm" type="object"
+                            groups="fleet.fleet_group_manager" string="Confirm" class="oe_highlight" /> -->
                         <!-- <button name="action_print" type="object" states="active"
                             groups="fleet.fleet_group_user" string="Print Coupon" class="oe_highlight" /> -->
                         <button name="action_log_fuel" type="object"
                             groups="fleet.fleet_group_user" string="Log Fuel Collected"
-                            class="oe_highlight"
-                            attrs="{'invisible': [
+                            class="oe_highlight" states="active"
+                        />
+                        <button name="action_log_puchase" type="object"
+                            groups="fleet.fleet_group_user" string="Log Purchase"
+                            class="oe_highlight" states="active"
+                        />
+                        <!-- attrs="{'invisible': [ '!',
                                 ('amount_remaining', '=', 0),
                                 ('state', '!=', 'active')
-                            ]}" 
-                        />
-                        <button name="action_cancel" type="object" states="draft,active"
-                            groups="fleet.fleet_group_manager" string="Cancel" />
-                        <button name="action_reset" type="object" states="expired"
-                            groups="fleet.fleet_group_manager" string="Set to Spare" />
+                            ]}"  -->
+                        <!-- <button name="action_cancel" type="object" states="draft,active"
+                            groups="fleet.fleet_group_manager" string="Cancel" /> -->
+                        <!-- <button name="action_reset" type="object" states="expired"
+                            groups="fleet.fleet_group_manager" string="Set to Spare" /> -->
                         <field name="state" widget="statusbar"
-                            statusbar_visible="draft,active,expired,cancel"
+                            statusbar_visible="active,inactive"
                             clickable="True"/>
                     </header>
                     <sheet>
                         <div class="oe_title">
-                            <label for="name" class="oe_edit_only" />
+                            <label for="name" class="oe_edit_only" invisible="1"/>
                             <h1>
-                                <field name="name" class="oe_inline" />
+                                <field name="name" class="oe_inline" invisible="1"/>
+                            </h1>
+                            <label for="card_number" class="oe_edit_only"/>
+                            <h1>
+                                <field name="card_number" attrs="{'readonly': [('id', '!=', False)]}" />
                             </h1>
                             <label for="vehicle_id" class="oe_edit_only" />
                             <h4>
                                 <field name="vehicle_id" options="{'no_create': True}"
-                                    attrs="{'readonly': [('state','!=', 'draft')]}" />
+                                    attrs="{'readonly': [('state','!=', 'active')]}" />
                             </h4>
                         </div>
                         <group>
                             <group>
+                                <field name="id" invisible="1"/>
                                 <field name="driver_id" readonly="1" invisible="1"/>
-                                <field name="card_number" />
-                                <field name="code" groups="fleet.fleet_group_manager" />
-                                <field name="fuel_type" attrs="{'readonly': [('state','!=', 'draft')]}" />
-                                <field name="odometer" attrs="{'readonly': [('state','!=', 'draft')]}" />
+                                <field name="code" groups="fleet.fleet_group_manager"
+                                    attrs="{'readonly': [('state','!=', 'active')]}"/>
+                                <field name="fuel_type" attrs="{'readonly': [('state','!=', 'active')]}" />
+                                <field name="odometer" invisible="1" />
                                 <field name="amount"
-                                    string="Daily Limit Liter"
-                                    attrs="{'readonly': [('state','!=', 'draft')]}"
+                                    string="Daily Limit (ltr)"
+                                    attrs="{'readonly': [('state','!=', 'active')]}"
                                 />
-                                <field name="daily_limit_amount" />
+                                <field name="daily_limit_amount" attrs="{'readonly': [('state','!=', 'active')]}"/>
                                 <field name="amount_remaining" invisible="1"/>
                                 <field name="auto_generated" invisible="1"/>
                             </group>
                             <group>
-                                <field name="issued_on" attrs="{'readonly': [('state','!=', 'draft')]}" />
-                                <label for="valid_from" string="Expiry Date" />
+                                <field name="issued_on" attrs="{'readonly': [('state','!=', 'active')]}" />
+                                <label for="valid_to" string="Expiry Date" />
                                 <div>
-                                        <field name="valid_from" nolabel="1" class="oe_inline"
-                                            attrs="{'readonly': [('state','!=', 'draft')]}" />
-                                        <label string="-" class="oe_inline" />
+                                        <!-- <field name="valid_from" nolabel="1" class="oe_inline"
+                                            attrs="{'readonly': [('state','!=', 'active')]}" />
+                                        <label string="-" class="oe_inline" /> -->
                                         <field name="valid_to" nolabel="1" class="oe_inline"
-                                            attrs="{'readonly': [('state','!=', 'draft')]}" />
+                                            attrs="{'readonly': [('state','!=', 'active')]}" />
                                 </div>
-                                <field name="delivered_on" />
-                                <field name="vendor_id" attrs="{'readonly': [('state','!=', 'draft')]}" />
-                                <field name="fuel_card_location"/>
+                                <field name="delivered_on" attrs="{'readonly': [('state','!=', 'active')]}"/>
+                                <field name="vendor_id" attrs="{'readonly': [('state','!=', 'active')]}" />
+                                <field name="fuel_card_location" attrs="{'readonly': [('state','!=', 'active')]}"/>
+                                <field name="is_spare" attrs="{'readonly': [('state','!=', 'active')]}"/>
                             </group>
                         </group>
                         <notebook>
@@ -96,14 +106,14 @@
 
                             </page>
                             <page string="Fuel Logs">
-                                <field name="log_fuel" />
+                                <field name="log_fuel" attrs="{'readonly': [('state','!=', 'active')]}" />
                             </page>
                             <page string="Purchases" >
                                 <field name="vehicle_cost_ids"
                                     context="{
                                         'default_vehicle_id': vehicle_id,
                                         'default_fuel_coupon_id': active_id}"
-                                        attrs="{'readonly': [('state','not in', ('draft', 'active'))]}" >
+                                        attrs="{'readonly': [('state','!=', 'active')]}" >
                                     <tree string="Purchase">
                                         <field name="vehicle_id"/>
                                         <field name="cost_subtype_id"/>
@@ -128,7 +138,7 @@
                                 </field>
                             </page>
                             <page string="Note">
-                                <field name="note" />
+                                <field name="note" attrs="{'readonly': [('state','!=', 'active')]}"/>
                             </page>
                         </notebook>
                     </sheet>
@@ -144,7 +154,8 @@
             <field name="model">fleet.fuel.coupon</field>
             <field name="arch" type="xml">
                 <tree string="Fuel Coupon">
-                    <field name="name" />
+                    <field name="name" invisible="1"/>
+                    <field name="card_number" />
                     <field name="vehicle_id" />
                     <field name="driver_id" />
                     <field name="valid_from" invisible="1" />
@@ -167,20 +178,21 @@
                     <filter name="source_manual" string="Manually Entered"
                         domain="[('auto_generated','=',False)]" />
                     <filter name="source_automatic" string="Auto Generated"
-                        domain="[('auto_generated','=',True)]" />
+                        domain="[('auto_generated','=',True)]" /> 
                     <separator />
-                    <filter name="draft" string="Draft" domain="[('state','=','draft')]" />
-                    <filter name="inprogress" string="In Progress"
-                        domain="[('state','in',('draft','active'))]" />
+                    <filter name="source_spare" string="Spare" domain="[('is_spare','=',True)]"/>
+                    <!-- <filter name="draft" string="Draft" domain="[('state','=','draft')]" /> -->
+                    <filter name="Active" string="Active"
+                        domain="[('state','=', 'active')]" />
                     <separator />
                     <group expand="0" string="Group By...">
-                        <filter name="group_valid_from" string="Date" icon="terp-personal"
-                            domain="[]" context="{'group_by':'valid_from'}" />
+                        <filter name="group_valid_from" string="Expire" icon="terp-personal"
+                            domain="[]" context="{'group_by':'valid_to'}" />
                         <filter name="group_vehicle" string="Vehicle" icon="terp-personal"
                             domain="[]" context="{'group_by':'vehicle_id'}" />
-                        <filter name="group_generated" string="Source"
+                        <!-- <filter name="group_generated" string="Source"
                             icon="terp-stock_symbol-selection" domain="[]"
-                            context="{'group_by':'auto_generated'}" />
+                            context="{'group_by':'auto_generated'}" /> -->
                         <filter string="Status" icon="terp-stock_effects-object-colorize"
                             domain="[]" context="{'group_by':'state'}" />
                     </group>
@@ -234,7 +246,7 @@
                 </group>
 
                 <page name="fuel_policies" position="inside">
-                    <group string="Fueling Policy">
+                    <group string="Fueling Policy" invisible="1">
                         <group>
                             <field name="fuel_frequency" />
                             <field name="fuel_amount" />

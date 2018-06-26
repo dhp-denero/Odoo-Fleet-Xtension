@@ -78,7 +78,7 @@ class fleet_vehicle_department(models.Model):
     display_name = fields.Char(compute='_dept_name_get_fnc', string='Name', store=True)
     vehicle_ids = fields.One2many('fleet.vehicle', 'department_id', 'Vehicles')
     vehicle_count = fields.Integer('Vehicle Count', compute="_get_vehicle_count")
-    parent_id = fields.Many2one('fleet.vehicle.department', 'Parent Department', select=True)
+    parent_id = fields.Many2one('fleet.vehicle.department', 'Parent Department', index=True)
     child_ids = fields.One2many('fleet.vehicle.department', 'parent_id', 'Child Departments')
     note = fields.Text('Note')
 
