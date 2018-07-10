@@ -5,15 +5,16 @@
     'author': "Salton Massally<smassally@idtlabs.sl>, DeneroTeam <dhaval@deneroteam.com>",
     'website': "http://idtlabs.sl",
     'category': 'Managing vehicles and contracts',
-    'version': '10.0.2018.06.26.3',
+    'version': '10.0.2018.06.29.1',
     'depends': ['fleet_x', 'fleet_x_driver'],
     'data': [
+        'security/fleet_fuel_security.xml',
+        'security/ir.model.access.csv',
         'views/fleet_fuel.xml',
         'data/fleet_fuel_data.xml',
         'report/fuel_board_view.xml',
         'views/fleet_fuel_report.xml',
         'views/res_config_views.xml',
-        'security/ir.model.access.csv',
         'report/report_fuel_coupon.xml',
     ],
     'installable': True

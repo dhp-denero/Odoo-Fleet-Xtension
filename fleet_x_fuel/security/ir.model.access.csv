@@ -1,3 +1,5 @@
 "id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
 "access_fleet_fuel_coupon_user","fuel_coupon_manager","model_fleet_fuel_coupon","fleet.fleet_group_user",1,1,1,0
 "access_fleet_fuel_coupon_fleet_manager","fuel_coupon_user","model_fleet_fuel_coupon","fleet.fleet_group_manager",1,1,1,1
+"fleet_fuel_coupon_access_right_driver","fleet_fuel_coupon_driver_id","model_fleet_fuel_coupon","fleet_x_driver.fleet_group_driver",1,0,0,0
+"fleet_fuel_log_access_right_driver","fleet_fuel_log_driver_id","fleet.model_fleet_vehicle_log_fuel","fleet_x_driver.fleet_group_driver",1,0,1,0

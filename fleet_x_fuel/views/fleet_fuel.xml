@@ -2,9 +2,9 @@
 <odoo>
 
         <menuitem name="Fuel Center" parent="fleet.menu_root" id="fleet.fleet_fuel"
-            sequence="2" groups="fleet.fleet_group_user" />
+            sequence="2" groups="fleet_x_driver.fleet_group_driver" />
         <menuitem action="fleet.fleet_vehicle_log_fuel_action" parent="fleet.fleet_fuel"
-            sequence="2" id="fleet.fleet_vehicle_log_fuel_menu" groups="fleet.fleet_group_user" />
+            sequence="2" id="fleet.fleet_vehicle_log_fuel_menu" groups="fleet_x_driver.fleet_group_driver" />
 
         <!-- fleet.vehicle.department -->
         <record id="fleet_fuel_coupon_form" model="ir.ui.view">
@@ -18,12 +18,20 @@
                         <!-- <button name="action_print" type="object" states="active"
                             groups="fleet.fleet_group_user" string="Print Coupon" class="oe_highlight" /> -->
                         <button name="action_log_fuel" type="object"
-                            groups="fleet.fleet_group_user" string="Log Fuel Collected"
-                            class="oe_highlight" states="active"
+                            string="Log Fuel Collected"
+                            class="oe_highlight"
+                            attrs="{'invisible': ['|',
+                                ('is_spare', '=', True),
+                                ('state', '!=', 'active')
+                            ]}"
                         />
                         <button name="action_log_puchase" type="object"
-                            groups="fleet.fleet_group_user" string="Log Purchase"
-                            class="oe_highlight" states="active"
+                            string="Log Purchase"
+                            class="oe_highlight"
+                            attrs="{'invisible': ['|',
+                                ('is_spare', '=', True),
+                                ('state', '!=', 'active')
+                            ]}"
                         />
                         <!-- attrs="{'invisible': [ '!',
                                 ('amount_remaining', '=', 0),
@@ -215,7 +223,7 @@
         </record>
 
         <menuitem action="open_fleet_fuel_coupon" id="menu_fleet_fuel_coupon"
-            parent="fleet.fleet_fuel" sequence="1" groups="fleet.fleet_group_user" />
+            parent="fleet.fleet_fuel" sequence="1" groups="fleet_x_driver.fleet_group_driver" />
 
         <record model='ir.ui.view' id='fleet_vehicle_costs_form_view_from_fuel_coupon'>
             <field name="name">fleet.vehicle.cost.form.from.fuel.coupon</field>
@@ -273,12 +281,38 @@
             <field name="inherit_id" ref="fleet.fleet_vehicle_log_fuel_view_form" />
             <field name="arch" type="xml">
                 <field name="vehicle_id" position="after">
-                    <field name="coupon_id" />
+                    <field name="is_manager" invisible="1" />
+                    <field name="coupon_id" attrs="{'readonly': [('is_manager', '=', False)]}"/>
+                </field>
+                <field name="vehicle_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_manager', '=', False)]}</attribute>
+                </field>
+                <field name="liter" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_manager', '=', False)]}</attribute>
+                </field>
+                <field name="amount" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_manager', '=', False)]}</attribute>
+                </field>
+                <field name="date" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_manager', '=', False)]}</attribute>
+                </field>
+
+                <field name="purchaser_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_manager', '=', False)]}</attribute>
+                </field>
+                <field name="inv_ref" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_manager', '=', False)]}</attribute>
+                </field>
+                <field name="vendor_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_manager', '=', False)]}</attribute>
+                </field>
+                <field name="notes" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_manager', '=', False)]}</attribute>
                 </field>
                 <xpath expr="//div[@class='o_row']" position="after">
                     <label for="current_odometer"/>
                     <div class="o_row">
-                        <field name="current_odometer"/>
+                        <field name="current_odometer" attrs="{'readonly': [('is_manager', '=', False)]}"/>
                     </div>
                 </xpath>
                 <label for="odometer" position="attributes">
@@ -286,23 +320,23 @@
                 </label>
 
                 <field name="odometer" position="replace">
-                    <field name="odometer" class="oe_inline" required="1" />
+                    <field name="odometer" class="oe_inline" required="1" attrs="{'readonly': [('is_manager', '=', False)]}"/>
                 </field>
 
                 <field name="price_per_liter" position="replace">
                     <field name="price_per_liter"
-                        required="1" />
+                        required="1"  attrs="{'readonly': [('is_manager', '=', False)]}"/>
                 </field>
                 <xpath expr="//sheet/group[last()]" position="after">
                     <group string="Statistics">
                         <group string="">
                             <field name="end_odometer" invisible="1"/>
-                            <field name="odometer_delta" />
-                            <field name="efficiency" />
+                            <field name="odometer_delta" attrs="{'readonly': [('is_manager', '=', False)]}"/>
+                            <field name="efficiency" attrs="{'readonly': [('is_manager', '=', False)]}"/>
                             <field name="efficiency_alert"
-                                attrs="{'invisible': [('efficiency_alert','!=', True)]}" />
+                                attrs="{'invisible': [('efficiency_alert','!=', True)], 'readonly': [('is_manager', '=', False)]}" />
                             <field name="efficiency_alert_type"
-                                attrs="{'invisible': [('efficiency_alert','!=', True)]}" />
+                                attrs="{'invisible': [('efficiency_alert','!=', True)], 'readonly': [('is_manager', '=', False)]}" />
                         </group>
                     </group>
                 </xpath>

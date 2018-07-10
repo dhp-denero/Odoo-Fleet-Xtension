@@ -298,9 +298,12 @@ class fleet_vehicle_cost(models.Model):
 
     @api.model
     def create(self, data):
+        context = dict(self.env.context or {})
+        if not context.get('odometer_id', False) or not context.get('default_odometer_id', False):
+            context.pop('default_odometer', None)
         if 'parent_id' in data and data['parent_id']:
             parent = self.browse(data['parent_id'])
             vehicle = parent.vehicle_id
             data['ref'] = '%s-%s' % (vehicle.license_plate, self.env['ir.sequence'].next_by_code('fleet.vehicle.cost.ref'))
-            # vehicle = self.env['fleet.vehicle'].browse(data['vehicle_id'])
-        return super(fleet_vehicle_cost, self).create(data)
+            vehicle = self.env['fleet.vehicle'].browse(data['vehicle_id'])
+        return super(fleet_vehicle_cost, self.with_context(context)).create(data)

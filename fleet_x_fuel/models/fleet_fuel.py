@@ -120,8 +120,8 @@ class fleet_fuel_coupon(models.Model):
                 rec.driver_id = driver
 
     name = fields.Char('Reference', readonly=True)
-    vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True, track_visibility='onchange')
-    driver_id = fields.Many2one('fleet.driver', 'Driver', related='vehicle_id.vehicle_driver_id', store=True)
+    vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', track_visibility='onchange')
+    driver_id = fields.Many2one('fleet.driver', 'Driver', related='vehicle_id.vehicle_driver_id', store=True, readonly=True)
     fuel_type = fields.Selection([('gasoline', 'Gasoline'), ('diesel', 'Diesel')], string="Fuel Type", related="vehicle_id.fuel_type", readonly=True, store=True)
     valid_from = fields.Date('Valid From')
     valid_to = fields.Date('Valid To', required=True)
@@ -144,18 +144,19 @@ class fleet_fuel_coupon(models.Model):
 
     odometer = fields.Float(string='Odometer Value', help='Odometer measure of the vehicle at the moment of issue')
 
-    stat_distance_delta = fields.Float('Last Refuel Distance', readonly=True, related='vehicle_id.last_fuel_distance', store=True)
-    stat_efficiency = fields.Float('Last Refuel KM/L', readonly=True, related='vehicle_id.last_fuel_efficiency', store=True)
-    stat_average_efficiency = fields.Float('Average KM/L', readonly=True, related='vehicle_id.km_per_lit', store=True)
-    stat_last_date = fields.Date('Last Refuel Date', readonly=True, related='vehicle_id.last_fuel_date', store=True)
-    stat_last_liter = fields.Float('Last Refuel Liters', readonly=True, related='vehicle_id.last_fuel_liter', store=True)
+    last_fuel_log = fields.Many2one("fleet.vehicle.log.fuel", "Last Fuel Log", readonly=True)
+    stat_distance_delta = fields.Float('Last Refuel Distance', readonly=True, related='last_fuel_log.vehicle_id.last_fuel_distance', store=True)
+    stat_efficiency = fields.Float('Last Refuel KM/L', readonly=True, related='last_fuel_log.vehicle_id.last_fuel_efficiency', store=True)
+    stat_average_efficiency = fields.Float('Average KM/L', readonly=True, related='last_fuel_log.vehicle_id.km_per_lit', store=True)
+    stat_last_date = fields.Date('Last Refuel Date', readonly=True, related='last_fuel_log.vehicle_id.last_fuel_date', store=True)
+    stat_last_liter = fields.Float('Last Refuel Liters', readonly=True, related='last_fuel_log.vehicle_id.last_fuel_liter', store=True)
     card_number = fields.Char('Card Number', required=True)
     daily_limit_amount = fields.Float('Daily Limit (amt)')
     vehicle_cost_ids = fields.One2many(
         'fleet.vehicle.cost', 'fuel_coupon_id',
         'Vehicle Cost'
     )
-    fuel_card_location = fields.Many2one('fleet.vehicle.location', 'Location', related='vehicle_id.location_id')
+    fuel_card_location = fields.Many2one('fleet.vehicle.location', 'Location', related='vehicle_id.location_id', readonly=True)
 
     stat_last_coupon_id = fields.Many2one(
         'fleet.fuel.coupon', 'Last Coupon',
@@ -266,19 +267,21 @@ class fleet_fuel_coupon(models.Model):
         coupon = self[0]
 
         compose_form = self.env.ref('fleet.fleet_vehicle_log_fuel_view_form', False)
-        fuel_log_obj = self.env['fleet.vehicle.log.fuel']
-        price = fuel_log_obj._get_default_price()
+        # fuel_log_obj = self.env['fleet.vehicle.log.fuel']
+        # price = fuel_log_obj._get_default_price()
+        # 'default_liter': coupon.amount_remaining,
         ctx = {
             'default_vehicle_id': coupon.vehicle_id.id,
             'default_odometer': coupon.vehicle_id.odometer,
-            'default_liter': coupon.amount_remaining,
             'default_purchaser_id': coupon.vehicle_id.driver_id.id,
             'default_coupon_id': coupon.id,
             'default_vendor_id': coupon.vendor_id.id,
             'default_odometer': coupon.odometer,
+            'default_liter': 0.0,
+            'default_amount': 0.0,
         }
-        if price:
-            ctx.update({'default_amount': price * coupon.amount})
+        # if price:
+        #     ctx.update({'default_amount': price * coupon.amount})
         return {
             'name': 'Log Fuel Coupon',
             'type': 'ir.actions.act_window',
@@ -298,11 +301,11 @@ class fleet_fuel_coupon(models.Model):
         compose_form = self.env.ref('fleet.fleet_vehicle_costs_view_form', False)
         # fuel_purchase_obj = self.env['fleet.vehicle.cost']
 
-        vehicle_odometer = log_purchase.vehicle_id.odometer_ids[0].value
+        vehicle_odometer = log_purchase.vehicle_id and log_purchase.vehicle_id.odometer_ids[0].value or 0.0
         service = self.env.ref('fleet.type_service_refueling', raise_if_not_found=False)
 
         ctx = {
-            'default_vehicle_id': log_purchase.vehicle_id.id,
+            'default_vehicle_id': log_purchase.vehicle_id and log_purchase.vehicle_id.id or False,
             'default_fuel_coupon_id': log_purchase.id,
             'default_odometer': vehicle_odometer,
             'default_cost_subtype_id': service and service.id or False,
@@ -347,6 +350,16 @@ class fleet_vehicle_log_fuel(models.Model):
         default_price_per_lt = safe_eval(IrConfigParam.get_param('fleet_x_fuel.default_price_per_lt', 'False') or 0.0)
         return default_price_per_lt
 
+    @api.multi
+    def _check_is_manager(self):
+
+        fleet_group_manager = False
+        if self.user_has_groups('fleet.fleet_group_manager'):
+            fleet_group_manager = True
+        for rec in self:
+            rec.is_manager = fleet_group_manager
+
+    is_manager = fields.Boolean('IS Manager', compute="_check_is_manager", default=True)
     coupon_id = fields.Many2one('fleet.fuel.coupon', 'Fuel Card', domain=[('state', '=', 'active')], ondelete='cascade')
     vendor_id = fields.Many2one('res.partner', 'Supplier', domain="[('supplier','=',True)]")
     price_per_liter = fields.Float('Price Per Liter', default=_get_default_price)
@@ -421,7 +434,7 @@ class fleet_vehicle_log_fuel(models.Model):
         if self.coupon_id:
             # if self.liter > (self.coupon_id.amount_remaining + self.liter):
             #     raise UserError('Amount being logged is more than the remaining amount on the liter')
-            if self.coupon_id.vehicle_id.id != self.vehicle_id.id:
+            if self.coupon_id.vehicle_id and self.coupon_id.vehicle_id.id != self.vehicle_id.id:
                 raise UserError('Vehicle cannot be different from that for which the coupon was issued')
         return True
 
@@ -436,11 +449,12 @@ class fleet_vehicle_log_fuel(models.Model):
 
     @api.multi
     def _rebuild_chain(self):
-        left, right = self._get_siblings()
-        if left:
-            left.right_id = self.id
-        if right:
-            self.right_id = right.id
+        for rec in self:
+            left, right = rec._get_siblings()
+            if left:
+                left.sudo().write({'right_id': rec.id})
+            if right:
+                rec.right_id.sudo().write({'right_id': right.id})
 
     @api.multi
     def write(self, data):
@@ -455,18 +469,24 @@ class fleet_vehicle_log_fuel(models.Model):
         return True
 
     @api.model
-    @api.returns('self', lambda value: value.id)
     def create(self, data):
         log = super(fleet_vehicle_log_fuel, self).create(data)
         # validation not be automatically called so we are calling it
         log._check_odometer_liter()
         # let's set link to the fuel log chain
         log._rebuild_chain()
-        if log.coupon_id and log.coupon_id.amount_remaining <= 0:
-                log.coupon_id.write({'delivered_on': log.date})
+        if log.coupon_id:
+            coupon_update_vals = {
+                'last_fuel_log' : log.id
+            }
+            if log.coupon_id.amount_remaining <= 0:
+                coupon_update_vals.update({'delivered_on': log.date})
+            log.coupon_id.sudo().write(coupon_update_vals)
+        #if log.coupon_id and log.coupon_id.amount_remaining <= 0:
+        #        log.coupon_id.write({'delivered_on': log.date})
         log_coupon_id = log.coupon_id and log.coupon_id.id or False
         if log.cost_id:
-            log.cost_id.write({
+            log.cost_id.sudo().write({
                 'vehicle_fuel_log_id': log.id,
                 'fuel_coupon_id': log_coupon_id,
             })

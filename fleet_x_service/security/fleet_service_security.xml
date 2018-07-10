@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<odoo>
+
+    <record id="fleet_rule_vehicle_sch_service_visibility_driver" model="ir.rule">
+        <field name="name">Driver can only see his/her Service Schedule</field>
+        <field name="model_id" ref="fleet_x_service.model_fleet_service_schedule"/>
+        <field name="groups" eval="[(4, ref('fleet_x_driver.fleet_group_driver'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="domain_force">['|',
+            ('vehicle_id.vehicle_driver_id.partner_id','=',user.partner_id.id),
+            ('vehicle_id.alt_vehicle_driver_id.partner_id','=',user.partner_id.id),
+        ]</field>
+    </record>
+
+    <record id="fleet_rule_vehicle_service_log_visibility_driver" model="ir.rule">
+        <field name="name">Driver can only see his/her Service Log</field>
+        <field name="model_id" ref="fleet.model_fleet_vehicle_log_services"/>
+        <field name="groups" eval="[(4, ref('fleet_x_driver.fleet_group_driver'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="domain_force">['|',
+            ('vehicle_id.vehicle_driver_id.partner_id','=',user.partner_id.id),
+            ('vehicle_id.alt_vehicle_driver_id.partner_id','=',user.partner_id.id),
+        ]</field>
+    </record>
+
+</odoo>

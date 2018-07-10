@@ -3,4 +3,19 @@
 "access_fleet_x_fleet_driver","fleet_x.fleet_driver","model_fleet_driver","fleet.fleet_group_manager",1,1,1,1
 
 "access_fleet_x_driver_assign","fleet_x.fleet_x_driver_assign","model_fleet_driver_assignment","fleet.fleet_group_user",1,1,1,0
+"access_driver_assign_right_driver","fleet_x.fleet_x_driver_assign_driver","model_fleet_driver_assignment","fleet_x_driver.fleet_group_driver",1,0,0,0
 "access_fleet_x_driver_assign","fleet_x.fleet_x_driver_assign","model_fleet_driver_assignment","fleet.fleet_group_manager",1,1,1,1
+
+"fleet_log_services_access_right_driver","fleet_vehicle_log_services_driver_id","fleet.model_fleet_vehicle_log_services","fleet_x_driver.fleet_group_driver",1,0,0,0
+"fleet_vehicle_access_right_driver","fleet_vehicle_access_right_driver_id","fleet.model_fleet_vehicle","fleet_x_driver.fleet_group_driver",1,0,0,0
+"fleet_vehicle_odometeer_access_right_driver","fleet_vehicle_odometer_driver_id","fleet.model_fleet_vehicle_odometer","fleet_x_driver.fleet_group_driver",1,0,1,0
+"fleet_vehicle_log_contract_access_right_driver","fleet_vehicle_log_contract_access_id","fleet.model_fleet_vehicle_log_contract","fleet_x_driver.fleet_group_driver",1,0,0,0
+"fleet_vehicle_cost_access_right_driver","fleet_vehicle_cost_access_id","fleet.model_fleet_vehicle_cost","fleet_x_driver.fleet_group_driver",1,1,1,0
+"fleet_vehicle_log_fuel_access_driver","fleet_vehicle_log_fuel_access_id","fleet.model_fleet_vehicle_log_fuel","fleet_x_driver.fleet_group_driver",1,1,1,0
+"fleet_vehicle_state_access_right_driver","fleet_vehicle_state_access_rights","fleet.model_fleet_vehicle_state","fleet_x_driver.fleet_group_driver",1,0,0,0
+"fleet_vehicle_driver","fleet_vehicle_access_rights","fleet_x_driver.model_fleet_driver","fleet_x_driver.fleet_group_driver",1,1,0,0
+"fleet_vehicle_issue_access_right_driver","fleet_vehicle_issue_access_right_driver_id","fleet_x_issue.model_fleet_vehicle_issue","fleet_x_driver.fleet_group_driver",1,0,0,0
+"fleet_vehicle_type_access","fleet_vehicle_type_access_rights_id","fleet_x.model_fleet_vehicle_type","fleet_x_driver.fleet_group_driver",1,0,0,0
+"fleet_vehicle_location_access","fleet_vehicle_location_access_rights_id","fleet_x.model_fleet_vehicle_location","fleet_x_driver.fleet_group_driver",1,0,0,0
+"res_partner_access_id","res_partner_access_rights","base.model_res_partner","fleet_x_driver.fleet_group_driver",1,0,1,0
+"ir_Attachment_access_id","ir_attachment_access_rights","base.model_ir_attachment","fleet_x_driver.fleet_group_driver",1,0,0,0

@@ -3,10 +3,10 @@
     <data>
 
         <menuitem name="Service Center" parent="fleet.menu_root" id="fleet_services"
-            sequence="3" groups="fleet.fleet_group_user" />
+            sequence="3" groups="fleet_x_driver.fleet_group_driver" />
         <menuitem action="fleet.fleet_vehicle_log_services_action"
             sequence="4" parent="fleet_services" id="fleet.fleet_vehicle_log_services_menu"
-            groups="fleet.fleet_group_user" />
+            groups="fleet_x_driver.fleet_group_driver" />
 
         <menuitem action="fleet.fleet_vehicle_log_contract_action"
             parent="fleet_services" sequence="0"
@@ -170,7 +170,7 @@
         </record>
 
         <menuitem id="menu_fleet_service_schedule" action="open_fleet_service_schedules"
-            groups="fleet.fleet_group_user" parent="fleet_services" sequence="15" />
+            groups="fleet_x_driver.fleet_group_driver" parent="fleet_services" sequence="15" />
 
 
 

@@ -3,3 +3,11 @@
 "access_fleet_x_service_sch_schedule","fleet_service_schedule_manager","model_fleet_service_schedule","fleet.fleet_group_manager",1,1,1,1
 "access_fleet_x_service_maintenance_user","fleet_service_maintenance_user","model_fleet_service_maintenance","fleet.fleet_group_user",1,0,0,0
 "access_fleet_x_service_maintenance","fleet_service_maintenance_manager","model_fleet_service_maintenance","fleet.fleet_group_manager",1,1,1,1
+
+"fleet_service_sch_access_right_driver","fleet_service_sch_driver_id","model_fleet_service_schedule","fleet_x_driver.fleet_group_driver",1,1,1,0
+
+"fleet_service_sch_log_access_right_driver","fleet_service_log_driver_id","fleet.model_fleet_vehicle_log_services","fleet_x_driver.fleet_group_driver",1,0,1,0
+
+"fleet_service_type_access_right_driver","fleet_service_type_driver_id","fleet.model_fleet_service_type","fleet_x_driver.fleet_group_driver",1,0,0,0
+
+"fleet_service_maintanance_access_right_driver","fleet_service_maintanance_access_id","fleet_x_service.model_fleet_service_maintenance","fleet_x_driver.fleet_group_driver",1,0,0,0

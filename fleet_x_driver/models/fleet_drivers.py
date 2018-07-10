@@ -4,6 +4,37 @@ from odoo.exceptions import UserError
 
 from datetime import datetime
 
+
+class res_partner(models.Model):
+    _inherit = 'res.partner'
+
+    @api.model
+    def create(self, vals):
+        res = super(res_partner, self).create(vals)
+        if res.email:
+            wiz_partner = []
+            wiz_partner.append((0, 0, {
+                'partner_id': res.id,
+                'email': res.email,
+                'in_portal': True,
+            }))
+            wiz_portal_id = self.env['portal.wizard'].create({
+                'user_ids': wiz_partner,
+            })
+            wiz_portal_id.action_apply()
+            portal_user = wiz_portal_id.user_ids.partner_id.user_ids
+            if portal_user:
+                portal_user.write({
+                    'groups_id': [(
+                        6, 0, [
+                            self.env.ref('base.group_portal').id,
+                            self.env.ref('fleet_x_driver.fleet_group_driver').id,
+                            self.env.ref('base.group_partner_manager').id
+                        ]
+                    )],
+                })
+        return res
+
 # --------------
 #  Vehicle Drivers
 # --------------
